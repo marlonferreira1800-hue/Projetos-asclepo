@@ -1,70 +1,42 @@
-# ⚡ ASCLEPIO NOTÍCIAS | Radar Global em Tempo Real (Web & Terminal)
+# 🏛️ Projetos Asclepio | Marlon Ferreira
 
-O **Asclepio Notícias** é um agregador e buscador de notícias em tempo real, bilíngue (**Português e Inglês**), com suporte a **Busca Mundial 360° com Tradução Automática**, cobertura do Brasil e do mundo todo, sem necessidade de chaves de API pagas.
-
-O projeto oferece duas interfaces:
-1. 🌐 **Interface Web Moderna (Navegador):** Dashboard responsivo com cards, modais, busca e auto-refresh em tempo real.
-2. 💻 **Interface CLI (Terminal):** Modo interativo estilizado via Rich, atalhos rápidos e monitor de breaking news.
+Repositório central de ferramentas e projetos do ecossistema **Asclepio**, integrando inteligência artificial, telemetria em tempo real e monitoramento global de informações.
 
 ---
 
-## 🚀 Como Executar
+## 📂 Projetos Incluídos
 
-### 1. 🌐 Versão Web (Recomendado)
-Para abrir no navegador padrão com interface gráfica:
+### 1. ⚡ [Asclepio Notícias](./) (Web & Terminal)
+Um agregador e buscador de notícias em tempo real, bilíngue (**Português e Inglês**), com suporte a **Busca Mundial 360° com Tradução Automática**, cobertura do Brasil e do mundo todo, sem necessidade de chaves de API pagas.
 
-```powershell
-python app.py
-```
-*Ou dê 2 cliques no atalho:*
-`Iniciar_Asclepio_Noticias.bat`
-
-Acesse no seu navegador: **`http://localhost:5050`**
-
----
-
-### 2. 💻 Versão Terminal (CLI)
-Para executar diretamente no terminal:
-
-```powershell
-python news.py
-```
-*Ou dê 2 cliques no atalho:*
-`noticias.bat`
-
-#### Comandos Rápidos no Terminal:
-```powershell
-# Busca Mundial 360° (Mundo Todo: PT & EN com tradução simultânea)
-python news.py --mundial "acordo nuclear"
-python news.py --mundial "petróleo"
-python news.py --mundial "inteligência artificial"
-
-# Notícias por Categoria
-python news.py --brasil          # Destaques do Brasil
-python news.py --mundo           # Internacional em Português
-python news.py --world-en        # Top Stories Globais em Inglês
-python news.py --tech-en         # Tecnologia & IA Global
-python news.py --theverge        # The Verge direto
-python news.py --techcrunch      # TechCrunch direto
-python news.py --economia        # Economia e Finanças BR
-python news.py --business-en     # Wall Street & Mercados Globais
-
-# Monitor Ao Vivo (Breaking News Watcher)
-python news.py --monitor brasil --intervalo 30
-```
+* **🌐 Versão Web no Navegador:**
+  - Execute `python app.py` ou dê 2 cliques em `Iniciar_Asclepio_Noticias.bat`.
+  - Acesse em `http://localhost:5050`.
+  - Dashboard dark mode com cards glassmorphism, busca mundial 360°, categorias rápidas e auto-refresh ao vivo.
+* **💻 Versão Terminal (CLI):**
+  - Execute `python news.py` ou dê 2 cliques em `noticias.bat`.
+  - Suporta busca direta (`python news.py --mundial "termo"`), filtros rápidos e monitor contínuo de breaking news.
 
 ---
 
-## 🌍 Funcionalidade Exclusiva: Busca Mundial 360°
+### 2. 🪙 [Calculadora de Tokens Gemini Pro](./calculadora-tokens-gemini/) (Web & CLI)
+Sistema de telemetria e rastreamento de consumo de tokens em tempo real para sessões do Antigravity e Gemini CLI, com equivalência de custos oficiais da Google AI Developers.
 
-- Digite qualquer notícia ou assunto específico (ex: `petróleo`, `OpenAI`, `crise energética`, `eleições`, `Taiwan`).
-- O sistema traduz automaticamente entre Português e Inglês (ex: `petróleo` ⇄ `oil`).
-- Varre os maiores veículos do Brasil *(G1, Folha, Estadão, CNN Brasil, InfoMoney, Poder360)* **E** do Mundo Todo *(Reuters, BBC, Wall Street Journal, The Guardian, CNBC, Bloomberg, NYT)* simultaneamente.
-- Consolida e ordena tudo por publicação mais recente com tags `🇧🇷 PT` e `🌐 EN`.
+* **🌐 Studio Web:**
+  - Execute `python calculadora-tokens-gemini/app.py` ou acesse `iniciar.bat`.
+  - Acesse em `http://127.0.0.1:8765/`.
+  - Gráficos turno-a-turno de Input, Cache e Output, uso de memória de contexto e estimativa financeira.
+* **🟢 Barra de Contexto Ao Vivo no Terminal:**
+  - Execute `python calculadora-tokens-gemini/scripts/live_bar.py`.
+  - Exibe barra animada com porcentagem de contexto ativo, memória em uso e cache hit.
+* **📊 Tabela OpenCode CLI:**
+  - Execute `python calculadora-tokens-gemini/scripts/opencode_stats.py`.
 
 ---
 
-## 📦 Instalação
+## 📦 Instalação Geral
+
+Clone o repositório e instale as dependências:
 
 ```bash
 git clone https://github.com/marlonferreira1800-hue/Projetos-asclepo.git
@@ -74,9 +46,8 @@ pip install -r requirements.txt
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
-- **Python 3**
-- **Flask** (Servidor Web REST API)
-- **Tailwind CSS & Lucide Icons** (Interface Web)
-- **Rich** (Terminal UI & Tabelas)
-- **Feedparser & Requests** (Coleta e Normalização RSS)
+## 🛠️ Tecnologias
+- **Linguagem:** Python 3
+- **Frameworks Web:** Flask, Tailwind CSS, Lucide Icons
+- **Terminal UI:** Rich, ANSI escape sequences
+- **Engenharia de Dados:** RSS feeds, JSONL parser, Google Translate API livre
