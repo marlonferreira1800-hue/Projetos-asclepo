@@ -818,9 +818,15 @@ async def handle_get_asclepio_news(request):
         return web.json_response({"available": False, "news": []})
     try:
         items = asclepio_fetcher.fetch_news("tecnologia", limit=6)
+        serialized_news = []
+        for it in items:
+            d = it.to_dict()
+            if isinstance(d.get("published"), datetime):
+                d["published"] = d["published"].isoformat()
+            serialized_news.append(d)
         return web.json_response({
             "available": True,
-            "news": [it.to_dict() for it in items]
+            "news": serialized_news
         })
     except Exception as e:
         return web.json_response({"available": False, "error": str(e), "news": []})
