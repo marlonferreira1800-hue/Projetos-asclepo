@@ -1,58 +1,64 @@
 # 🏛️ Projetos Asclepio | Marlon Ferreira
 
-Repositório central de ferramentas e projetos do ecossistema **Asclepio**, integrando inteligência artificial, telemetria em tempo real e monitoramento global de informações.
+Repositório central do ecossistema **Asclepio**, integrando **inteligência artificial corporativa**, **telemetria financeira em tempo real** e **monitoramento global de informações**.
 
 ---
 
-## 📂 Projetos Incluídos
+## 🧭 Mapa Rápido dos Projetos
 
-### 1. ⚡ [Asclepio Notícias](./) (Web & Terminal)
-Um agregador e buscador de notícias em tempo real, bilíngue (**Português e Inglês**), com suporte a **Busca Mundial 360° com Tradução Automática**, cobertura do Brasil e do mundo todo, sem necessidade de chaves de API pagas.
-
-* **🌐 Versão Web no Navegador:**
-  - Execute `python app.py` ou dê 2 cliques em `Iniciar_Asclepio_Noticias.bat`.
-  - Acesse em `http://localhost:5050`.
-  - Dashboard dark mode com cards glassmorphism, busca mundial 360°, categorias rápidas e auto-refresh ao vivo.
-* **💻 Versão Terminal (CLI):**
-  - Execute `python news.py` ou dê 2 cliques em `noticias.bat`.
-  - Suporta busca direta (`python news.py --mundial "termo"`), filtros rápidos e monitor contínuo de breaking news.
+| Projeto | Diretório | Acesso Web | Modo CLI / Terminal | Descrição & Motor |
+| :--- | :--- | :--- | :--- | :--- |
+| **1. ⚡ Asclepio Notícias** | [`asclepio-noticias/`](./asclepio-noticias/) | `http://localhost:5050` | `python news.py` | Radar global de notícias em tempo real, bilíngue (PT/EN), Busca 360° e tradução automática livre. |
+| **2. 🪙 Calculadora de Tokens Gemini** | [`calculadora-tokens-gemini/`](./calculadora-tokens-gemini/) | `http://localhost:8765` | `python scripts/live_bar.py` | Telemetria em tempo real de tokens consumidos, custos oficiais Google AI e barra visual no terminal. |
+| **3. 📰 Redação Virtual Decifrando Dados** | [`redacao-virtual/`](./redacao-virtual/) | `http://localhost:8080` | `python server.py 8080` | Painel RPG 2D Canvas de agentes autônomos com IA **NVIDIA 550B**, scraper web ao vivo e compilação de PDF para o LinkedIn. |
 
 ---
 
-### 2. 🪙 [Calculadora de Tokens Gemini Pro](./calculadora-tokens-gemini/) (Web & CLI)
-Sistema de telemetria e rastreamento de consumo de tokens em tempo real para sessões do Antigravity e Gemini CLI, com equivalência de custos oficiais da Google AI Developers.
+## ⚡ Inicialização Rápida (1 Clique)
 
-* **🌐 Studio Web:**
-  - Execute `python calculadora-tokens-gemini/app.py` ou acesse `iniciar.bat`.
-  - Acesse em `http://127.0.0.1:8765/`.
-  - Gráficos turno-a-turno de Input, Cache e Output, uso de memória de contexto e estimativa financeira.
-* **🟢 Barra de Contexto Ao Vivo no Terminal:**
-  - Execute `python calculadora-tokens-gemini/scripts/live_bar.py`.
-  - Exibe barra animada com porcentagem de contexto ativo, memória em uso e cache hit.
-* **📊 Tabela OpenCode CLI:**
-  - Execute `python calculadora-tokens-gemini/scripts/opencode_stats.py`.
+Na raiz do repositório, você encontra scripts prontos para rodar no Windows:
+
+- **[`HUB_ASCLEPIO.bat`](./HUB_ASCLEPIO.bat)** — **Menu Central Interativo:** escolha qual projeto abrir (1, 2, 3 ou todos juntos).
+- **[`1_iniciar_noticias.bat`](./1_iniciar_noticias.bat)** — Abre diretamente o **Asclepio Notícias** (`:5050`).
+- **[`2_iniciar_calculadora.bat`](./2_iniciar_calculadora.bat)** — Abre a **Calculadora de Tokens Gemini** (`:8765`).
+- **[`3_iniciar_redacao.bat`](./3_iniciar_redacao.bat)** — Abre a **Redação Virtual Decifrando Dados** (`:8080`).
 
 ---
 
-### 3. 📰 [Redação Virtual Decifrando Dados 2D](./redacao-virtual/) (Web RPG & Estúdio de IA)
-Painel interativo estilo RPG 16-bit / pixel art top-down que simula e executa a produção real da newsletter oficial **Decifrando Dados** (por **Marlon Ferreira**) no padrão milimétrico **The BRIEF** (*"Smart people are cooler"*).
+## 📂 Detalhamento dos Projetos
 
-* **🧠 Motor de IA Superpotente:**
-  - Conectado à supercomputação da **NVIDIA NIM** com o modelo **Nemotron-3 Ultra (550 Bilhões de parâmetros)** e fallback para **Gemma 4 31B** ou **Gemini Pro**.
-* **🌐 Mineração Factual ao Vivo:**
-  - O Agente Curador integra-se ao **Asclepio Notícias** (`fetcher.py`) para puxar manchetes e possui scraper web (`BeautifulSoup`) para ler URLs e notícias reais da internet.
-* **♨️ O Forno (Compilação Automática):**
-  - Compila automaticamente o PDF editorial de alta resolução via Microsoft Edge headless em `C:\Users\marlo\Downloads\dados25`.
-  - Gera HTML responsivo e injeta o artigo formatado diretamente na Área de Transferência do Windows (`Ctrl + V` pronto para o LinkedIn).
-* **🌐 Como Executar:**
-  - Execute `python redacao-virtual/server.py 8080` ou dê 2 cliques em `redacao-virtual/iniciar_redacao.bat`.
-  - Acesse em `http://localhost:8080`.
+### 1. ⚡ [Asclepio Notícias](./asclepio-noticias/)
+* **🌐 Web:** Execute `1_iniciar_noticias.bat` ou acesse `http://localhost:5050`.
+* **💻 Terminal:** Execute `noticias.bat` ou `python asclepio-noticias/news.py`.
+* **Recursos:**
+  - RSS feeds categorizados (Brasil, Mundo, Economia, Tecnologia & IA).
+  - Busca Mundial 360° com tradução em tempo real.
+  - Integração nativa como provedor de dados para a Redação Virtual.
 
 ---
 
-## 📦 Instalação Geral
+### 2. 🪙 [Calculadora de Tokens Gemini Pro](./calculadora-tokens-gemini/)
+* **🌐 Web Studio:** Execute `2_iniciar_calculadora.bat` ou acesse `http://localhost:8765`.
+* **💻 Barra ao Vivo no Terminal:** `python calculadora-tokens-gemini/scripts/live_bar.py`.
+* **Recursos:**
+  - Monitoramento contínuo de tokens de Input, Output e Contexto de Cache.
+  - Equivalência financeira em dólares e reais (tabela oficial Google AI).
+  - Tabela OpenCode CLI e rastreador automático.
 
-Clone o repositório e instale as dependências:
+---
+
+### 3. 📰 [Redação Virtual Decifrando Dados 2D](./redacao-virtual/)
+* **🌐 Web Studio:** Execute `3_iniciar_redacao.bat` ou acesse `http://localhost:8080`.
+* **Recursos:**
+  - **Motor Neuronal 550B:** Conectado à supercomputação da **NVIDIA NIM** (`nvidia/nemotron-3-ultra-550b-a55b`) com fallback para **Gemma 4 31B** ou **Gemini Pro**.
+  - **Mineração Factual ao Vivo:** O Agente Curador acessa a internet (`BeautifulSoup`) e o `fetcher.py` do Asclepio Notícias para embasar a matéria em fatos reais.
+  - **O Forno (Compilação Automática):** Compila PDF diagramado via Microsoft Edge headless em `C:\Users\marlo\Downloads\dados25` e copia o texto do artigo do LinkedIn para o Clipboard (`Ctrl + V`).
+
+---
+
+## 📦 Instalação & Dependências
+
+Clone o repositório e instale todos os pacotes necessários:
 
 ```bash
 git clone https://github.com/marlonferreira1800-hue/Projetos-asclepo.git
@@ -62,10 +68,10 @@ pip install -r requirements.txt
 
 ---
 
-## 🛠️ Tecnologias
-- **Linguagem:** Python 3 (Flask, aiohttp, WebSockets assíncronos)
-- **Frontend & Gráficos:** HTML5 Canvas 2D (60 FPS pixel-art), Tailwind CSS, Lucide Icons
-- **Inteligência Artificial:** NVIDIA NIM API (Nemotron-3 Ultra 550B), Google Gemini API
-- **Web Scraping & Feeds:** BeautifulSoup4, Feedparser (RSS), Google News 360°
-- **Terminal UI:** Rich, ANSI escape sequences
-- **Diagramação:** Microsoft Edge Headless (impressão PDF de alta fidelidade)
+## 🛠️ Stack Tecnológica Consolidada
+- **Backends:** Python 3 (Flask, aiohttp assíncrono, WebSockets full-duplex)
+- **Frontends:** HTML5 Canvas 2D (60 FPS pixel-art RPG), Tailwind CSS, Lucide Icons, Glassmorphism
+- **Inteligência Artificial:** NVIDIA NIM API (Nemotron 550B), Google Gemini API
+- **Engenharia de Dados:** BeautifulSoup4, Feedparser (RSS), Google News 360°, JSONL Parser
+- **Terminal UI:** Rich CLI, ANSI Escape Codes, scripts batch com suporte a UTF-8
+- **Diagramação Editorial:** Microsoft Edge Headless (PDF de alta resolução)

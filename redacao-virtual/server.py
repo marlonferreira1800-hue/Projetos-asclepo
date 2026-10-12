@@ -45,9 +45,10 @@ DIST_DIR = BASE_DIR / "dist"
 DOWNLOADS_DIR = Path(r"C:\Users\marlo\Downloads\dados25")
 
 # Integração nativa com o Projeto 1 (Asclepio Notícias)
+for search_dir in [BASE_DIR.parent / "asclepio-noticias", BASE_DIR.parent]:
+    if search_dir.exists() and str(search_dir) not in sys.path:
+        sys.path.insert(0, str(search_dir))
 try:
-    if str(BASE_DIR.parent) not in sys.path:
-        sys.path.insert(0, str(BASE_DIR.parent))
     import fetcher as asclepio_fetcher
     logger.info("⚡ Integração Asclepio Notícias ativada com sucesso!")
 except Exception as e:
