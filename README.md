@@ -34,6 +34,22 @@ Sistema de telemetria e rastreamento de consumo de tokens em tempo real para ses
 
 ---
 
+### 3. 📰 [Redação Virtual Decifrando Dados 2D](./redacao-virtual/) (Web RPG & Estúdio de IA)
+Painel interativo estilo RPG 16-bit / pixel art top-down que simula e executa a produção real da newsletter oficial **Decifrando Dados** (por **Marlon Ferreira**) no padrão milimétrico **The BRIEF** (*"Smart people are cooler"*).
+
+* **🧠 Motor de IA Superpotente:**
+  - Conectado à supercomputação da **NVIDIA NIM** com o modelo **Nemotron-3 Ultra (550 Bilhões de parâmetros)** e fallback para **Gemma 4 31B** ou **Gemini Pro**.
+* **🌐 Mineração Factual ao Vivo:**
+  - O Agente Curador integra-se ao **Asclepio Notícias** (`fetcher.py`) para puxar manchetes e possui scraper web (`BeautifulSoup`) para ler URLs e notícias reais da internet.
+* **♨️ O Forno (Compilação Automática):**
+  - Compila automaticamente o PDF editorial de alta resolução via Microsoft Edge headless em `C:\Users\marlo\Downloads\dados25`.
+  - Gera HTML responsivo e injeta o artigo formatado diretamente na Área de Transferência do Windows (`Ctrl + V` pronto para o LinkedIn).
+* **🌐 Como Executar:**
+  - Execute `python redacao-virtual/server.py 8080` ou dê 2 cliques em `redacao-virtual/iniciar_redacao.bat`.
+  - Acesse em `http://localhost:8080`.
+
+---
+
 ## 📦 Instalação Geral
 
 Clone o repositório e instale as dependências:
@@ -47,7 +63,9 @@ pip install -r requirements.txt
 ---
 
 ## 🛠️ Tecnologias
-- **Linguagem:** Python 3
-- **Frameworks Web:** Flask, Tailwind CSS, Lucide Icons
+- **Linguagem:** Python 3 (Flask, aiohttp, WebSockets assíncronos)
+- **Frontend & Gráficos:** HTML5 Canvas 2D (60 FPS pixel-art), Tailwind CSS, Lucide Icons
+- **Inteligência Artificial:** NVIDIA NIM API (Nemotron-3 Ultra 550B), Google Gemini API
+- **Web Scraping & Feeds:** BeautifulSoup4, Feedparser (RSS), Google News 360°
 - **Terminal UI:** Rich, ANSI escape sequences
-- **Engenharia de Dados:** RSS feeds, JSONL parser, Google Translate API livre
+- **Diagramação:** Microsoft Edge Headless (impressão PDF de alta fidelidade)

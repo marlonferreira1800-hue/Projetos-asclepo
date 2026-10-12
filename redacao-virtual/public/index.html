@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Decifrando Dados - Redação Virtual 2D (The BRIEF)</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+</head>
+<body>
+
+  <!-- =========================================================================
+       BARRA SUPERIOR RETRÔ (TOPBAR)
+       ========================================================================= -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-icon">⚡</div>
+      <div class="brand-info">
+        <h1>DECIFRANDO DADOS // REDAÇÃO 2D</h1>
+        <p>Estúdio Virtual de Agentes IA &bull; Formato "The BRIEF" &bull; Marlon Ferreira</p>
+      </div>
+    </div>
+
+    <!-- Indicadores de Status da Redação -->
+    <div class="topbar-stats">
+      <div class="stat-chip working">
+        <span class="dot"></span>
+        <span id="countWorking">3 Produzindo</span>
+      </div>
+      <div class="stat-chip idle">
+        <span class="dot"></span>
+        <span id="countIdle">1 No Café</span>
+      </div>
+      <div class="stat-chip waiting">
+        <span class="dot"></span>
+        <span id="countWaiting">1 Aguardando</span>
+      </div>
+    </div>
+
+    <!-- Ações e Conexão -->
+    <div class="topbar-actions">
+      <button id="btnToggleSim" class="btn-toggle active" title="Pausar ou Retomar a Simulação Automática">
+        ⏸ Pausar Simulação
+      </button>
+      <button id="btnToggleAudio" class="btn-toggle" title="Ativar Efeitos Sonoros 8-bit">
+        🔇 Mudo
+      </button>
+      <button id="btnToggleCrt" class="btn-toggle" title="Ativar Efeito de Monitor CRT Retrô">
+        📺 CRT Scanlines
+      </button>
+      <div class="connection-status">
+        <div id="statusIndicator" class="status-indicator"></div>
+        <span id="statusText">Conectando...</span>
+      </div>
+  </header>
+
+  <!-- =========================================================================
+       BARRA DE FLUXO DA RECEITA DE BOLO (PIPELINE OFICIAL)
+       ========================================================================= -->
+  <div class="receita-banner">
+    <div class="receita-info">
+      <span class="receita-badge">RECEITA DE BOLO</span>
+      <div>
+        <div id="receitaFaseTitulo" class="receita-title">🥣 1. Ingredientes & Pauta Central</div>
+        <div id="receitaFaseSub" class="receita-sub">Mineração de fato central e curiosidade histórica</div>
+      </div>
+    </div>
+
+    <div class="receita-controls">
+      <div class="receita-progress-wrap">
+        <div class="progress-bar-bg">
+          <div id="receitaProgressBar" class="progress-bar-fill" style="width: 14%;"></div>
+        </div>
+        <div id="receitaProgressLabel" class="progress-label">Etapa 1 de 7 (14%)</div>
+      </div>
+      <button id="btnReceitaNext" class="btn-toggle active" title="Avançar para a próxima etapa da receita">
+        ⏭ Avançar Etapa
+      </button>
+      <button id="btnReceitaReset" class="btn-toggle" title="Reiniciar a edição do início">
+        🔄 Nova Edição
+      </button>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       CONTAINER PRINCIPAL: CANVAS 2D + PAINEL DE CONTROLE
+       ========================================================================= -->
+  <main class="app-container">
+    
+    <!-- PALCO DO JOGO CANVAS 2D -->
+    <section class="stage-wrapper">
+      <div class="canvas-container">
+        <!-- Canvas HTML5 com resolução nítida 16:9 pixel-art -->
+        <canvas id="officeCanvas" width="960" height="580"></canvas>
+        <!-- Overlay opcional de linhas CRT -->
+        <div id="crtOverlay" class="crt-overlay"></div>
+      </div>
+
+      <!-- Barra de Legendas do Escritório -->
+      <div class="canvas-toolbar">
+        <div class="room-legend">
+          <div class="legend-item">
+            <span class="legend-badge">🖥️</span>
+            <span>Bancadas da Newsletter</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-badge">☕</span>
+            <span>Máquina de Café & Lounge</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-badge">💧</span>
+            <span>Bebedouro</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-badge">📋</span>
+            <span>Lousa de Edição Ativa</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-badge">🛋️</span>
+            <span>Área de Descompressão</span>
+          </div>
+        </div>
+        <div style="color: #64748b; font-family: var(--mono-font); font-size: 11px;">
+          Pressione ou clique em um agente para inspecionar
+        </div>
+      </div>
+    </section>
+
+    <!-- PAINEL LATERAL DE CONTROLE DOS AGENTES -->
+    <aside class="sidebar">
+
+      <!-- Painel de Produção Real da Newsletter -->
+      <div class="card card-produzir">
+        <div class="card-header">
+          <span class="card-title">🚀 PRODUZIR EDIÇÃO REAL</span>
+        </div>
+
+        <!-- Badge do Modelo Potente Ativo -->
+        <div class="ai-model-badge" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11px; padding: 7px 10px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 6px; color: #34d399; font-family: var(--mono-font); margin-bottom: 12px;">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="display:inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981;"></span>
+            <span><strong>NVIDIA NIM:</strong> Nemotron-3 Ultra</span>
+          </div>
+          <span style="background: rgba(16, 185, 129, 0.25); padding: 2px 6px; border-radius: 4px; font-weight: bold; color: #6ee7b7; font-size: 10px;">550B PARÂMETROS</span>
+        </div>
+
+        <div class="input-tema-wrap">
+          <input type="text" id="inputTemaEdicao" class="input-tema" placeholder="Pauta ou Notícia... (ex: DuckDB vs Spark)">
+          <input type="text" id="inputFonteUrl" class="input-tema" style="margin-top: 6px; font-size: 11px; padding: 6px 10px; background: #0f172a; border-color: #334155;" placeholder="🔗 Link da Notícia / Fonte real (opcional - IA raspa ao vivo)">
+          <div class="tags-sugestoes">
+            <span class="badge-tag" data-tema="DuckDB vs Spark: O fim dos clusters gigantes em 2026?">DuckDB vs Spark</span>
+            <span class="badge-tag" data-tema="A armadilha dos agentes de IA sem governança de dados">IA sem Governança</span>
+            <span class="badge-tag" data-tema="SQL continua sendo a habilidade nº 1 de dados">SQL Soberano</span>
+          </div>
+        </div>
+        <button id="btnProduzirReal" class="btn-produzir-real">
+          ⚡ Acionar Agentes e Gerar Edição Real
+        </button>
+      </div>
+
+      <!-- Checklist Oficial da Receita de Bolo -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🎂 RECEITA DE BOLO (ETAPAS)</span>
+        </div>
+        <div id="receitaStepsList" class="receita-steps-list">
+          <!-- Renderizado dinamicamente via game.js -->
+        </div>
+      </div>
+
+      <!-- Cenários Rápidos -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">⚡ CENÁRIOS RÁPIDOS</span>
+        </div>
+        <div class="scenario-buttons">
+          <button class="btn-scenario" data-scenario="sprint">
+            🔥 Sprint Total
+          </button>
+          <button class="btn-scenario" data-scenario="coffee_break">
+            ☕ Pausa Geral
+          </button>
+          <button class="btn-scenario full-width" data-scenario="editor_approval">
+            🎯 Revisão do Editor Marlon
+          </button>
+        </div>
+      </div>
+
+      <!-- Monitor de Agentes da Newsletter -->
+      <div class="card" style="flex: 1;">
+        <div class="card-header">
+          <span class="card-title">🤖 EQUIPE EDITORIAL</span>
+        </div>
+        <div id="agentsList" class="agents-list">
+          <!-- Renderizado dinamicamente via game.js -->
+        </div>
+      </div>
+
+      <!-- Feed / Terminal de Atividades da Newsletter -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📟 FEED DA REDAÇÃO</span>
+        </div>
+        <div id="terminalLogs" class="terminal-window">
+          <!-- Linhas de log em tempo real -->
+        </div>
+      </div>
+
+      <!-- Inspecionador de JSON em Tempo Real -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">{ } JSON DE ESTADO (API)</span>
+        </div>
+        <pre id="jsonViewer" class="json-viewer"></pre>
+      </div>
+
+    </aside>
+
+  <!-- Modal de Entrega da Edição Concluída -->
+  <div id="deliveryModalBackdrop" class="delivery-modal-backdrop">
+    <div class="delivery-modal">
+      <div class="delivery-header">
+        <span id="modalEdicaoTitulo" class="delivery-title">🎉 EDIÇÃO GERADA COM SUCESSO!</span>
+        <button id="btnFecharModal" class="btn-modal-close">&times;</button>
+      </div>
+      <div class="delivery-body">
+        <div class="delivery-item-box">
+          <div id="modalTemaTexto" style="font-size: 13px; font-weight: bold; color: #fff; margin-bottom: 4px;">Tema</div>
+          <div id="modalDetalhesTexto" style="font-size: 11px; color: #94a3b8; margin-bottom: 8px;">Arquivos compilados no padrão oficial The BRIEF</div>
+          
+          <!-- Raio-X & Prova de Autenticidade -->
+          <div id="modalAuditBox" style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 6px; padding: 10px; font-family: var(--mono-font); font-size: 11px; margin-top: 8px;">
+            <div style="color: #60a5fa; font-weight: bold; margin-bottom: 6px;">🔍 RAIO-X & PROVA DE AUTENTICIDADE:</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; color: #cbd5e1;">
+              <div>🧠 <strong>Motor:</strong> <span id="auditMotor" style="color: #34d399;">NVIDIA Nemotron 550B</span></div>
+              <div>⏱️ <strong>Tempo de IA:</strong> <span id="auditTempo" style="color: #fbbf24;">68s</span></div>
+              <div>🌐 <strong>Fonte:</strong> <span id="auditFonte" style="color: #38bdf8;">Web Minerada</span></div>
+              <div>📄 <strong>Compilador:</strong> <span id="auditCompilador" style="color: #f472b6;">Edge Headless</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="delivery-actions-grid">
+          <a id="btnAbrirPdf" href="#" target="_blank" class="btn-delivery-action primary">
+            📄 Abrir PDF Editorial
+          </a>
+          <a id="btnAbrirHtml" href="#" target="_blank" class="btn-delivery-action">
+            🌐 Abrir HTML (Botão Azul)
+          </a>
+          <button id="btnCopiarArtigo" class="btn-delivery-action">
+            📋 Copiar Artigo LinkedIn
+          </button>
+          <button id="btnCopiarPost" class="btn-delivery-action">
+            📢 Copiar Post de Divulgação
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script do Motor do Jogo e Conexão -->
+  <script src="game.js"></script>
+</body>
+</html>
