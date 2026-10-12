@@ -644,14 +644,31 @@ class VirtualOfficeManager:
             else:
                 logger.info(f"Compilação concluída: {stdout.decode()}")
 
-            # Copia também para C:\Users\marlo\Downloads\dados25 se existir
-            pdf_source = DIST_DIR / f"{edicao_str}.pdf"
-            if pdf_source.exists() and DOWNLOADS_DIR.exists():
+            # Copia também para C:\Users\marlo\Downloads\dados25 (publicacoes e edicoes)
+            if DOWNLOADS_DIR.exists():
                 try:
-                    shutil.copy2(pdf_source, DOWNLOADS_DIR / f"{edicao_str}.pdf")
-                    self._add_log(f"📁 PDF copiado com sucesso para: C:\\Users\\marlo\\Downloads\\dados25\\{edicao_str}.pdf")
+                    pub_dir = DOWNLOADS_DIR / "publicacoes"
+                    ed_dir = DOWNLOADS_DIR / "edicoes"
+                    pub_dir.mkdir(parents=True, exist_ok=True)
+                    ed_dir.mkdir(parents=True, exist_ok=True)
+
+                    pdf_source = DIST_DIR / f"{edicao_str}.pdf"
+                    if pdf_source.exists():
+                        shutil.copy2(pdf_source, pub_dir / f"{edicao_str}.pdf")
+                        self._add_log(f"📁 PDF salvo em: {pub_dir}\\{edicao_str}.pdf")
+
+                    html_source = DIST_DIR / f"{edicao_str}.html"
+                    if html_source.exists():
+                        shutil.copy2(html_source, pub_dir / f"{edicao_str}.html")
+
+                    txt_source = DIST_DIR / f"{edicao_str}_artigo_linkedin.txt"
+                    if txt_source.exists():
+                        shutil.copy2(txt_source, pub_dir / f"{edicao_str}_artigo_linkedin.txt")
+
+                    if target_md_path.exists():
+                        shutil.copy2(target_md_path, ed_dir / f"{edicao_str}.md")
                 except Exception as e:
-                    logger.warning(f"Não foi possível copiar para Downloads: {e}")
+                    logger.warning(f"Não foi possível sincronizar com dados25: {e}")
 
             # ------------------------------------------------------------------
             # ETAPA 7: Servir (Edição Concluída e Publicada)
