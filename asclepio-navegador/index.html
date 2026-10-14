@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:; font-src 'self' data: https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; object-src 'none';" />
+  <title>Asclepio</title>
+
+  <!-- Polar usa Manrope + JetBrains Mono via Google Fonts e fonte local -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="src/css/style.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       CURSOR VIRTUAL DO AGENTE (overlay de automação — Asclepio exclusivo)
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <div id="agent-cursor" aria-hidden="true">
+    <svg class="cursor-svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <path d="M4 3L11.5 21L14.5 13L22 10L4 3Z" fill="#01BAEF" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/>
+    </svg>
+    <div id="cursor-label">Asclepio AI</div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       APP SHELL — Layout de 3 colunas igual ao Polar:
+       [sidebar-nav estreita] [browser-main] [agent-panel]
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <div id="app-shell">
+
+    <!-- ── LEFT NAV RAIL (narrow sidebar — Polar tem isso) ────────────── -->
+    <nav id="nav-rail" aria-label="Navegação principal">
+      <!-- Logo / Branding -->
+      <div class="nav-logo" title="Asclepio Browser">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+        </svg>
+      </div>
+
+      <div class="nav-rail-spacer"></div>
+
+      <!-- Nav Rail Actions -->
+      <div class="nav-rail-actions">
+        <button class="nav-rail-btn" id="btn-theme-toggle" title="Alternar Tema Claro / Escuro">
+          <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+          </svg>
+        </button>
+        <button class="nav-rail-btn" id="btn-new-tab-rail" title="Nova Aba (Ctrl+T)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+        </button>
+        <button class="nav-rail-btn" id="btn-toggle-ai-rail" title="Asclepio AI (Ctrl+/)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+          </svg>
+        </button>
+      </div>
+    </nav>
+
+    <!-- ── MAIN BROWSER COLUMN ─────────────────────────────────────────── -->
+    <div id="browser-column">
+
+      <!-- TOP BAR: Abas + Barra de Navegação (Polar-style) -->
+      <header id="top-bar">
+
+        <!-- Linha 1: Abas -->
+        <div id="tab-strip">
+          <div id="tabs-container">
+            <!-- as abas são inseridas dinamicamente via browser.js -->
+          </div>
+          <button id="btn-new-tab" class="btn-new-tab" title="Nova Aba (Ctrl+T)" aria-label="Abrir nova aba">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Linha 2: Controles de navegação + Omnibar -->
+        <div id="navigation-bar">
+
+          <!-- Botões de navegação -->
+          <div class="nav-controls">
+            <button class="nav-btn" id="btn-back" title="Voltar (Alt+←)" aria-label="Voltar" disabled>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m15 18-6-6 6-6"/>
+              </svg>
+            </button>
+            <button class="nav-btn" id="btn-forward" title="Avançar (Alt+→)" aria-label="Avançar" disabled>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m9 18 6-6-6-6"/>
+              </svg>
+            </button>
+            <button class="nav-btn" id="btn-reload" title="Recarregar (Ctrl+R)" aria-label="Recarregar">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+                <path d="M21 3v5h-5"/>
+                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+                <path d="M8 16H3v5"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Omnibar: Barra de URL central -->
+          <div id="omnibar-wrapper" role="search">
+            <span class="omnibar-security-icon" id="omnibar-icon" aria-hidden="true">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </span>
+            <input
+              type="text"
+              id="url-input"
+              class="omnibar-input"
+              placeholder="Pesquisar ou digitar endereço…"
+              autocomplete="off"
+              spellcheck="false"
+              aria-label="Barra de endereços"
+            />
+          </div>
+
+          <!-- Botão principal do Asclepio AI -->
+          <button id="btn-ai-toggle" class="btn-ai" aria-label="Abrir painel Asclepio AI" aria-expanded="false">
+            <span class="ai-live-dot" aria-hidden="true"></span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+            </svg>
+            <span>Asclepio AI</span>
+          </button>
+        </div>
+
+      </header>
+
+      <!-- ÁREA PRINCIPAL: Webviews em tela cheia -->
+      <main id="webviews-container" aria-label="Conteúdo do navegador">
+        <!-- webviews dinâmicos inseridos aqui pelo browser.js -->
+
+        <!-- Aura Luminosa de Navegação do Agente (Borda Azul Polar nas beiradas sem piscar a tela) -->
+        <div id="agent-viewport-aura" class="agent-viewport-aura" aria-hidden="true">
+          <div class="agent-aura-badge">
+            <span class="agent-aura-pulse"></span>
+            <span id="agent-aura-text">Asclepio AI navegando…</span>
+          </div>
+        </div>
+
+        <!-- Loading indicator overlay -->
+        <div id="page-loading-bar" aria-hidden="true">
+          <div id="page-loading-fill"></div>
+        </div>
+      </main>
+
+    </div><!-- /browser-column -->
+
+    <!-- ── AGENT PANEL (sidebar direita — clone fiel do Polar) ─────────── -->
+    <aside id="agent-panel" aria-label="Asclepio AI" role="complementary">
+
+      <!-- Cabeçalho do Painel -->
+      <div class="panel-header">
+        <div class="panel-brand">
+          <span class="panel-live-dot" aria-label="Conectado"></span>
+          <span class="panel-title">Asclepio Agent</span>
+        </div>
+        <span class="panel-badge" id="ai-active-badge" title="Modelo Ativo (Troca simultânea automática em caso de limite de tokens)">✨ Gemini 2.5 Flash</span>
+        <button class="icon-btn" id="btn-close-panel" title="Fechar painel (Ctrl+/)" aria-label="Fechar painel">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6 6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Quick actions chips (Polar-style) -->
+      <div class="quick-actions" role="toolbar" aria-label="Ações rápidas">
+        <button class="action-chip" data-action="summarize">📝 Resumir</button>
+        <button class="action-chip" data-action="explain">💡 Explicar</button>
+        <button class="action-chip" data-action="extract">📊 Extrair dados</button>
+      </div>
+
+      <!-- Fluxo de mensagens do chat -->
+      <div id="chat-stream" class="chat-stream" role="log" aria-live="polite" aria-label="Mensagens">
+        <!-- mensagens inseridas pelo agent.js -->
+      </div>
+
+      <!-- Status de gravação de voz -->
+      <div id="voice-status-bar" role="status" aria-live="polite">
+        <span class="voice-wave" aria-hidden="true"></span>
+        <span id="voice-status-text">Ouvindo… fale seu comando</span>
+      </div>
+
+      <!-- Input card (exatamente como o Polar) -->
+      <div class="panel-input-area">
+        <form id="agent-input-form" novalidate>
+          <div class="input-card" id="input-card">
+            <textarea
+              id="agent-prompt-input"
+              rows="2"
+              placeholder="Peça para navegar, pesquisar ou analisar esta página…"
+              autocomplete="off"
+              spellcheck="false"
+              aria-label="Prompt para o Asclepio AI"
+            ></textarea>
+            <div class="input-card-toolbar">
+              <div class="toolbar-hint">
+                <span class="toolbar-hint-text">⚡ Autônomo com IA</span>
+              </div>
+              <div class="toolbar-actions">
+                <!-- Botão de microfone -->
+                <button type="button" id="btn-mic" class="icon-btn mic-btn" title="Gravar voz (Ctrl+M)" aria-label="Gravar entrada de voz" aria-pressed="false">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                    <line x1="12" x2="12" y1="19" y2="22"/>
+                  </svg>
+                </button>
+                <!-- Botão de enviar -->
+                <button type="submit" id="btn-send" class="send-btn" title="Enviar (Enter)" aria-label="Enviar prompt">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="12" y1="19" x2="12" y2="5"/>
+                    <polyline points="5 12 12 5 19 12"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+
+    </aside><!-- /agent-panel -->
+
+  </div><!-- /app-shell -->
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       COMMAND PALETTE (Ctrl+K — igual ao Polar Command Panel)
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <div id="command-palette" role="dialog" aria-modal="true" aria-label="Paleta de comandos" hidden>
+    <div class="palette-backdrop"></div>
+    <div class="palette-box">
+      <div class="palette-search-row">
+        <svg class="palette-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+        </svg>
+        <input type="text" id="palette-input" placeholder="Pesquisar ou perguntar ao Asclepio…" autocomplete="off" aria-label="Busca da paleta de comandos" />
+        <kbd class="palette-esc">Esc</kbd>
+      </div>
+      <div class="palette-results" id="palette-results" role="listbox">
+        <div class="palette-group-label">Ações Rápidas</div>
+        <div class="palette-item selected" role="option" data-action="ask-ai">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+          </svg>
+          <span>Perguntar ao Asclepio AI</span>
+          <kbd>↵</kbd>
+        </div>
+        <div class="palette-item" role="option" data-action="new-tab">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          <span>Nova Aba</span>
+          <kbd>Ctrl+T</kbd>
+        </div>
+        <div class="palette-item" role="option" data-action="youtube">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m5 3 14 9-14 9V3z"/>
+          </svg>
+          <span>Abrir YouTube</span>
+          <small>youtube.com</small>
+        </div>
+        <div class="palette-item" role="option" data-action="summarize">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+          <span>Resumir página atual</span>
+          <small>/resumir</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       SCRIPTS (ordem importa: cursor → browser → controller → agent → palette)
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <script src="src/js/agent-cursor.js"></script>
+  <script src="src/js/browser.js"></script>
+  <script src="src/js/browser-controller.js"></script>
+  <script src="src/js/agent.js"></script>
+  <script src="src/js/command-palette.js"></script>
+
+</body>
+</html>

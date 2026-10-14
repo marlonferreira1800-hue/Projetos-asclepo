@@ -1,0 +1,23 @@
+{
+  "name": "asclepio-browser",
+  "version": "1.0.0",
+  "description": "Asclepio - O Navegador Inteligente com Agente de IA Autônomo Integrado",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron ."
+  },
+  "keywords": [
+    "browser",
+    "ai",
+    "agent",
+    "asclepio",
+    "reverse-engineered",
+    "assistant"
+  ],
+  "author": "Marlon Ferreira",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^34.2.0"
+  }
+}

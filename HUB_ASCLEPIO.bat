@@ -24,17 +24,22 @@ echo   [3] 📰 Redação Virtual Decifrando Dados (Canvas 2D RPG)
 echo       Porta: http://localhost:8080
 echo       Descricao: Estudio de Agentes com IA NVIDIA 550B e The BRIEF
 echo.
-echo   [4] 🌐 Abrir todos os 3 painéis no navegador
+echo   [4] 🌐 Asclepio Navegador Autônomo (Clonagem Polar Browser)
+echo       Interface: Aplicacao Desktop Electron (Chromium + IA)
+echo       Descricao: Navegador com agente autonomo, fallback multimodelo e aura azul
+echo.
+echo   [5] 🚀 Abrir todos os projetos
 echo.
 echo   [0] ❌ Sair
 echo.
 echo ==============================================================================
-set /p opt="Digite o numero da opcao desejada [0-4]: "
+set /p opt="Digite o numero da opcao desejada [0-5]: "
 
 if "%opt%"=="1" goto opt1
 if "%opt%"=="2" goto opt2
 if "%opt%"=="3" goto opt3
 if "%opt%"=="4" goto opt4
+if "%opt%"=="5" goto opt5
 if "%opt%"=="0" goto fim
 goto menu
 
@@ -70,11 +75,24 @@ goto menu
 
 :opt4
 echo.
-echo Abrindo os 3 projetos no navegador...
+echo Iniciando Asclepio Navegador Autonomo...
+cd /d "%~dp0asclepio-navegador"
+if not exist node_modules (
+    echo Instalando dependencias do Electron...
+    call npm install
+)
+call npm start
+pause
+goto menu
+
+:opt5
+echo.
+echo Abrindo os 4 projetos do ecossistema Asclepio...
 start "" "http://localhost:5050"
 start "" "http://localhost:8765"
 start "" "http://localhost:8080"
-echo Abas abertas!
+start "" "%~dp04_iniciar_navegador.bat"
+echo Projetos disparados!
 timeout /t 3 > nul
 goto menu
 

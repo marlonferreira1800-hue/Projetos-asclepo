@@ -1,16 +1,17 @@
 # 🏛️ Projetos Asclepio | Marlon Ferreira
 
-Repositório central do ecossistema **Asclepio**, integrando **inteligência artificial corporativa**, **telemetria financeira em tempo real** e **monitoramento global de informações**.
+Repositório central do ecossistema **Asclepio**, integrando **inteligência artificial corporativa**, **telemetria financeira em tempo real**, **monitoramento global de informações** e **navegação autônoma na web**.
 
 ---
 
 ## 🧭 Mapa Rápido dos Projetos
 
-| Projeto | Diretório | Acesso Web | Modo CLI / Terminal | Descrição & Motor |
+| Projeto | Diretório | Acesso | Modo CLI / Terminal | Descrição & Motor |
 | :--- | :--- | :--- | :--- | :--- |
 | **1. ⚡ Asclepio Notícias** | [`asclepio-noticias/`](./asclepio-noticias/) | `http://localhost:5050` | `python news.py` | Radar global de notícias em tempo real, bilíngue (PT/EN), Busca 360° e tradução automática livre. |
 | **2. 🪙 Calculadora de Tokens Gemini** | [`calculadora-tokens-gemini/`](./calculadora-tokens-gemini/) | `http://localhost:8765` | `python scripts/live_bar.py` | Telemetria em tempo real de tokens consumidos, custos oficiais Google AI e barra visual no terminal. |
 | **3. 📰 Redação Virtual Decifrando Dados** | [`redacao-virtual/`](./redacao-virtual/) | `http://localhost:8080` | `python server.py 8080` | Painel RPG 2D Canvas de agentes autônomos com IA **NVIDIA 550B**, scraper web ao vivo e compilação de PDF para o LinkedIn. |
+| **4. 🌐 Asclepio Navegador Autônomo** | [`asclepio-navegador/`](./asclepio-navegador/) | Desktop App (Electron) | `npm start` | Navegador inteligente com agente autônomo, engenharia reversa do Polar Browser, aura azul e fallback multimodelo. |
 
 ---
 
@@ -18,10 +19,11 @@ Repositório central do ecossistema **Asclepio**, integrando **inteligência art
 
 Na raiz do repositório, você encontra scripts prontos para rodar no Windows:
 
-- **[`HUB_ASCLEPIO.bat`](./HUB_ASCLEPIO.bat)** — **Menu Central Interativo:** escolha qual projeto abrir (1, 2, 3 ou todos juntos).
+- **[`HUB_ASCLEPIO.bat`](./HUB_ASCLEPIO.bat)** — **Menu Central Interativo:** escolha qual projeto abrir (1, 2, 3, 4 ou todos juntos).
 - **[`1_iniciar_noticias.bat`](./1_iniciar_noticias.bat)** — Abre diretamente o **Asclepio Notícias** (`:5050`).
 - **[`2_iniciar_calculadora.bat`](./2_iniciar_calculadora.bat)** — Abre a **Calculadora de Tokens Gemini** (`:8765`).
 - **[`3_iniciar_redacao.bat`](./3_iniciar_redacao.bat)** — Abre a **Redação Virtual Decifrando Dados** (`:8080`).
+- **[`4_iniciar_navegador.bat`](./4_iniciar_navegador.bat)** — Abre o **Asclepio Navegador Autônomo** (Electron Desktop).
 
 ---
 
@@ -56,6 +58,18 @@ Na raiz do repositório, você encontra scripts prontos para rodar no Windows:
 
 ---
 
+### 4. 🌐 [Asclepio Navegador Autônomo](./asclepio-navegador/)
+* **🖥️ Desktop App:** Execute `4_iniciar_navegador.bat` ou acesse a pasta e rode `npm start`.
+* **Recursos:**
+  - **Clonagem Arquitetural do Polar Browser:** Navegação baseada em Chromium (`webviewTag`) com isolamento seguro IPC via `preload.js`.
+  - **Modo Executivo Direto:** O agente não apenas conversa, mas navega, pesquisa, clica e digita em tempo real.
+  - **Aura Viewport Luminosa:** Moldura azul/ciano suave nas margens da tela indicando operação do agente sem piscar a página.
+  - **Estética Polar White Padrão:** Design em porcelana `#F8F6F5` e branco puro com alternador instantâneo para Dark Mode.
+  - **Roteamento com Fallback Simultâneo:** Alternância sem atrito entre Google Gemini 2.5 Flash, OpenAI GPT-4o-mini, OpenRouter e Antigravity CLI.
+  - **Navegação Universal:** Suporte a mais de 25 portais e serviços (YouTube, LinkedIn, Facebook, Excel Web, Google Sheets, Gmail, etc.).
+
+---
+
 ## 📦 Instalação & Dependências
 
 Clone o repositório e instale todos os pacotes necessários:
@@ -63,15 +77,22 @@ Clone o repositório e instale todos os pacotes necessários:
 ```bash
 git clone https://github.com/marlonferreira1800-hue/Projetos-asclepo.git
 cd Projetos-asclepo
+
+# 1. Dependências Python (Notícias, Calculadora, Redação)
 pip install -r requirements.txt
+
+# 2. Dependências do Navegador (Node.js / Electron)
+cd asclepio-navegador
+npm install
+cd ..
 ```
 
 ---
 
 ## 🛠️ Stack Tecnológica Consolidada
-- **Backends:** Python 3 (Flask, aiohttp assíncrono, WebSockets full-duplex)
-- **Frontends:** HTML5 Canvas 2D (60 FPS pixel-art RPG), Tailwind CSS, Lucide Icons, Glassmorphism
-- **Inteligência Artificial:** NVIDIA NIM API (Nemotron 550B), Google Gemini API
-- **Engenharia de Dados:** BeautifulSoup4, Feedparser (RSS), Google News 360°, JSONL Parser
-- **Terminal UI:** Rich CLI, ANSI Escape Codes, scripts batch com suporte a UTF-8
+- **Backends:** Python 3 (Flask, aiohttp assíncrono, WebSockets full-duplex) & Node.js / Electron
+- **Frontends:** HTML5 Canvas 2D (60 FPS pixel-art RPG), Tailwind CSS, Lucide Icons, Glassmorphism & Polar White Design System
+- **Inteligência Artificial:** NVIDIA NIM API (Nemotron 550B), Google Gemini 2.5 Flash, OpenAI GPT-4o-mini, OpenRouter & Antigravity
+- **Engenharia de Dados & Automação:** DOM Synthesizer, BeautifulSoup4, Feedparser (RSS), Google News 360°, JSONL Parser
+- **Terminal UI & Desktop:** Rich CLI, ANSI Escape Codes, scripts batch com suporte a UTF-8 e launcher nativo em C#
 - **Diagramação Editorial:** Microsoft Edge Headless (PDF de alta resolução)
