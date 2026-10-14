@@ -30,9 +30,12 @@ class AgentCursor {
     if (!this.cursorEl) return;
     this.show(label);
 
-    // Limites de tela seguros
-    const targetX = Math.max(10, Math.min(window.innerWidth - 380, x));
+    // Limites de tela seguros (respeita se o painel do agente está aberto ou fechado)
+    const panel = document.getElementById('agent-panel');
+    const panelOffset = (panel && !panel.classList.contains('hidden')) ? (panel.offsetWidth || 360) : 20;
+    const targetX = Math.max(10, Math.min(window.innerWidth - panelOffset - 10, x));
     const targetY = Math.max(60, Math.min(window.innerHeight - 30, y));
+
 
     this.cursorEl.style.transition = `transform ${duration}ms cubic-bezier(0.22, 1, 0.36, 1)`;
     this.cursorEl.style.transform = `translate3d(${targetX}px, ${targetY}px, 0)`;

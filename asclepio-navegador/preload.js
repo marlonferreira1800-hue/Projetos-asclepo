@@ -27,7 +27,8 @@ contextBridge.exposeInMainWorld('__asclepioHost', {
   getAiModelInfo: () => ipcRenderer.invoke('asclepio:get-ai-model-info'),
 
   // ── Inovações dos 4 Gigantes (Browser-Use SoM, Stagehand, Open-Interpreter Vision) ──
-  captureActiveView: () => ipcRenderer.invoke('asclepio:capture-active-view'),
+  captureActiveView: (rect) => ipcRenderer.invoke('asclepio:capture-active-view', rect),
+
   locateVisualCoordinates: (data) => ipcRenderer.invoke('asclepio:locate-visual-coordinates', data),
   chooseElementAction: (data) => ipcRenderer.invoke('asclepio:choose-element-action', data),
   extractData: (data) => ipcRenderer.invoke('asclepio:extract-data', data),

@@ -26,7 +26,9 @@ log(`[Asclepio Main] gotTheLock: ${gotTheLock}`);
 if (!gotTheLock) {
   log('[Asclepio Main] Duplicate instance detected, quitting.');
   app.quit();
+  return;
 }
+
 
 const CHROME_UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
@@ -174,16 +176,24 @@ ipcMain.handle('asclepio:get-ai-model-info', async () => {
 });
 
 // ─── PASSO 3: CAPTURA DE TELA PARA GROUNDING VISUAL MULTIMODAL (OPEN-INTERPRETER) ─
-ipcMain.handle('asclepio:capture-active-view', async () => {
+ipcMain.handle('asclepio:capture-active-view', async (_event, rect) => {
   if (!mainWindow) return null;
   try {
-    const image = await mainWindow.capturePage();
+    const captureRect = (rect && rect.width > 0 && rect.height > 0) ? {
+      x: Math.round(rect.x),
+      y: Math.round(rect.y),
+      width: Math.round(rect.width),
+      height: Math.round(rect.height)
+    } : undefined;
+
+    const image = await mainWindow.capturePage(captureRect);
     return image.toJPEG(85).toString('base64');
   } catch (err) {
     log(`[Asclepio Main] Erro ao capturar tela: ${err.message}`);
     return null;
   }
 });
+
 
 // ─── PASSO 3: GROUNDING VISUAL MULTIMODAL COM GEMINI 2.5 FLASH ─────────────
 ipcMain.handle('asclepio:locate-visual-coordinates', async (_event, { imageBase64, targetDescription }) => {

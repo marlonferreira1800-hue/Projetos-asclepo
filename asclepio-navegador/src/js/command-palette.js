@@ -40,32 +40,39 @@ class CommandPalette {
       });
     }
 
+    // Filtro dinâmico de busca ao digitar
+    this.inputEl.addEventListener('input', () => {
+      this.filterItems();
+    });
+
     // Navegação por teclado (Setas Cima / Baixo e Enter)
     this.inputEl.addEventListener('keydown', (e) => {
-      const items = Array.from(this.resultsEl.querySelectorAll('.palette-item'));
-      let currentIndex = items.findIndex(it => it.classList.contains('selected'));
+      const visibleItems = Array.from(this.resultsEl.querySelectorAll('.palette-item'))
+        .filter(it => it.style.display !== 'none');
+      let currentIndex = visibleItems.findIndex(it => it.classList.contains('selected'));
 
       if (e.key === 'ArrowDown') {
         e.preventDefault();
-        if (items.length === 0) return;
-        if (currentIndex !== -1) items[currentIndex].classList.remove('selected');
-        currentIndex = (currentIndex + 1) % items.length;
-        items[currentIndex].classList.add('selected');
-        items[currentIndex].scrollIntoView({ block: 'nearest' });
+        if (visibleItems.length === 0) return;
+        if (currentIndex !== -1) visibleItems[currentIndex].classList.remove('selected');
+        currentIndex = (currentIndex + 1) % visibleItems.length;
+        visibleItems[currentIndex].classList.add('selected');
+        visibleItems[currentIndex].scrollIntoView({ block: 'nearest' });
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
-        if (items.length === 0) return;
-        if (currentIndex !== -1) items[currentIndex].classList.remove('selected');
-        currentIndex = (currentIndex - 1 + items.length) % items.length;
-        items[currentIndex].classList.add('selected');
-        items[currentIndex].scrollIntoView({ block: 'nearest' });
+        if (visibleItems.length === 0) return;
+        if (currentIndex !== -1) visibleItems[currentIndex].classList.remove('selected');
+        currentIndex = (currentIndex - 1 + visibleItems.length) % visibleItems.length;
+        visibleItems[currentIndex].classList.add('selected');
+        visibleItems[currentIndex].scrollIntoView({ block: 'nearest' });
       } else if (e.key === 'Enter') {
         e.preventDefault();
-        const selected = items[currentIndex];
+        const selected = visibleItems[currentIndex];
         const query = this.inputEl.value.trim();
 
-        if (selected && !query) {
-          this.executeAction(selected.dataset.action);
+        // Se há um item selecionado que não é o genérico 'ask-ai', ou se o query está vazio
+        if (selected && (!query || selected.dataset.action !== 'ask-ai')) {
+          this.executeAction(selected.dataset.action, query);
         } else if (query) {
           // Se começou com barra ou pergunta pro agente
           if (query.startsWith('/') || query.toLowerCase().startsWith('como') || query.toLowerCase().startsWith('o que')) {
@@ -88,13 +95,44 @@ class CommandPalette {
     });
   }
 
-  executeAction(action) {
+  filterItems() {
+    const query = this.inputEl.value.trim().toLowerCase();
+    const items = Array.from(this.resultsEl.querySelectorAll('.palette-item'));
+    let firstVisible = null;
+    let hasSelectedVisible = false;
+
+    items.forEach(item => {
+      const text = (item.textContent || '').toLowerCase();
+      const action = (item.dataset.action || '').toLowerCase();
+      const matches = !query || text.includes(query) || action.includes(query);
+      if (matches) {
+        item.style.display = '';
+        if (!firstVisible) firstVisible = item;
+        if (item.classList.contains('selected')) hasSelectedVisible = true;
+      } else {
+        item.style.display = 'none';
+        item.classList.remove('selected');
+      }
+    });
+
+    if (!hasSelectedVisible) {
+      items.forEach(it => it.classList.remove('selected'));
+      if (firstVisible) {
+        firstVisible.classList.add('selected');
+      }
+    }
+  }
+
+  executeAction(action, query = '') {
     this.close();
 
     switch (action) {
       case 'ask-ai':
         if (window.asclepioAgent) {
           window.asclepioAgent.openPanel();
+          if (query) {
+            window.asclepioAgent.handleUserPrompt(query);
+          }
         }
         break;
 
@@ -129,6 +167,13 @@ class CommandPalette {
   open() {
     this.paletteEl.removeAttribute('hidden');
     this.inputEl.value = '';
+    // Restaura visibilidade de todos os itens e reseta seleção
+    const items = Array.from(this.resultsEl.querySelectorAll('.palette-item'));
+    items.forEach((it, idx) => {
+      it.style.display = '';
+      if (idx === 0) it.classList.add('selected');
+      else it.classList.remove('selected');
+    });
     this.inputEl.focus();
     this.isOpen = true;
   }

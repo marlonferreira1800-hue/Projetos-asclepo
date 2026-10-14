@@ -175,9 +175,16 @@ class AsclepioBrowser {
 
     const tabEl = document.createElement('div');
     tabEl.className = 'tab';
-    tabEl.id = `header-${tabId}`;
+    let initialFavicon = 'https://www.google.com/s2/favicons?domain=google.com&sz=32';
+    try {
+      if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+        const u = new URL(url);
+        initialFavicon = `https://www.google.com/s2/favicons?domain=${u.hostname}&sz=32`;
+      }
+    } catch (_) {}
+
     tabEl.innerHTML = `
-      <img class="tab-favicon" src="https://www.google.com/s2/favicons?domain=google.com&sz=32" alt="" />
+      <img class="tab-favicon" src="${initialFavicon}" alt="" />
       <span class="tab-title">${title}</span>
       <span class="tab-close" title="Fechar aba">&times;</span>
     `;
@@ -191,11 +198,20 @@ class AsclepioBrowser {
     webviewEl.setAttribute('allowpopups', 'true');
     webviewEl.setAttribute('webpreferences', 'nativeWindowOpen=yes');
 
+    // BUG FIX 3: Captura links target="_blank" e window.open do webview para abrir como abas
+    webviewEl.addEventListener('new-window', (e) => {
+      e.preventDefault();
+      if (e.url) {
+        this.createTab(e.url, 'Nova Aba');
+      }
+    });
+
     // Extrai favicon e título
     webviewEl.addEventListener('page-title-updated', (e) => {
       const titleSpan = tabEl.querySelector('.tab-title');
       if (titleSpan) titleSpan.textContent = e.title;
     });
+
 
     webviewEl.addEventListener('page-favicon-updated', (e) => {
       if (e.favicons && e.favicons.length > 0) {

@@ -144,9 +144,16 @@ class BrowserController {
         if (!input) return { success: false };
 
         input.focus();
-        input.value = textToType;
+        const proto = (input instanceof HTMLTextAreaElement ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype);
+        const setter = Object.getOwnPropertyDescriptor(proto, 'value')?.set;
+        if (setter) {
+          setter.call(input, textToType);
+        } else {
+          input.value = textToType;
+        }
         input.dispatchEvent(new Event('input', { bubbles: true }));
         input.dispatchEvent(new Event('change', { bubbles: true }));
+
 
         if (${pressEnter}) {
           input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }));
@@ -847,8 +854,17 @@ class BrowserController {
     try {
       return await wv.executeJavaScript(`
         (() => {
-          // Remove crachás anteriores se existirem
-          document.querySelectorAll('.asclepio-som-badge').forEach(e => e.remove());
+          // BUG FIX 6: Container de overlay fixo no viewport para crachás SoM sem drift
+          let overlay = document.getElementById('asclepio-som-overlay');
+          if (overlay) overlay.remove();
+          overlay = document.createElement('div');
+          overlay.id = 'asclepio-som-overlay';
+          overlay.style.position = 'fixed';
+          overlay.style.inset = '0';
+          overlay.style.pointerEvents = 'none';
+          overlay.style.zIndex = '2147483647';
+          overlay.style.overflow = 'hidden';
+          document.body.appendChild(overlay);
 
           const interactables = Array.from(document.querySelectorAll(
             'button, a, input, select, textarea, [role="button"], [role="link"], [role="tab"], [role="menuitem"], [tabindex="0"]'
@@ -874,7 +890,7 @@ class BrowserController {
             const badge = document.createElement('div');
             badge.className = 'asclepio-som-badge';
             badge.innerText = id;
-            badge.style.position = 'absolute';
+            badge.style.position = 'fixed';
             badge.style.background = '#01BAEF';
             badge.style.color = '#FFFFFF';
             badge.style.fontSize = '11px';
@@ -888,9 +904,9 @@ class BrowserController {
             badge.style.lineHeight = '14px';
 
             const rect = el.getBoundingClientRect();
-            badge.style.top = (rect.top + window.scrollY) + 'px';
-            badge.style.left = (rect.left + window.scrollX) + 'px';
-            document.body.appendChild(badge);
+            badge.style.top = Math.max(2, Math.round(rect.top - 2)) + 'px';
+            badge.style.left = Math.max(2, Math.round(rect.left - 2)) + 'px';
+            overlay.appendChild(badge);
 
             elementMap.push({
               id: id,
@@ -916,6 +932,8 @@ class BrowserController {
     try {
       await wv.executeJavaScript(`
         (() => {
+          const overlay = document.getElementById('asclepio-som-overlay');
+          if (overlay) overlay.remove();
           document.querySelectorAll('.asclepio-som-badge').forEach(e => e.remove());
         })();
       `);
@@ -985,7 +1003,14 @@ class BrowserController {
           if (el) {
             el.scrollIntoView({ behavior: 'smooth', block: 'center' });
             el.focus();
-            el.value = ${JSON.stringify(text)};
+            // BUG FIX 2: Setter do protótipo para disparar eventos sintéticos no React 16+
+            const proto = (el instanceof HTMLTextAreaElement ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype);
+            const setter = Object.getOwnPropertyDescriptor(proto, 'value')?.set;
+            if (setter) {
+              setter.call(el, ${JSON.stringify(text)});
+            } else {
+              el.value = ${JSON.stringify(text)};
+            }
             el.dispatchEvent(new Event('input', { bubbles: true }));
             el.dispatchEvent(new Event('change', { bubbles: true }));
             return { success: true };
@@ -1007,7 +1032,14 @@ class BrowserController {
 
     this.startAgentAura(`👁️ Localizando "${targetDescription}" via Visão Computacional…`);
     try {
-      const base64 = await window.__asclepioHost.captureActiveView();
+      // BUG FIX 1: Passa o retângulo exato do webview para a captura de tela ser recortada perfeitamente
+      const wvRect = wv.getBoundingClientRect();
+      const base64 = await window.__asclepioHost.captureActiveView({
+        x: wvRect.left,
+        y: wvRect.top,
+        width: wvRect.width,
+        height: wvRect.height
+      });
       if (!base64) {
         return { success: false, reason: 'Falha ao capturar tela' };
       }
@@ -1018,9 +1050,9 @@ class BrowserController {
       });
 
       if (visionResult && visionResult.found && visionResult.xPercent && visionResult.yPercent) {
-        const wvRect = wv.getBoundingClientRect();
         const targetX = Math.round((visionResult.xPercent / 100) * wvRect.width);
         const targetY = Math.round((visionResult.yPercent / 100) * wvRect.height);
+
 
         // Move cursor virtual para o ponto de visão
         if (window.agentCursor) {
