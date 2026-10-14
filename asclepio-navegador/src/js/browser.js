@@ -128,6 +128,11 @@ class AsclepioBrowser {
       }
     });
 
+    // Seleciona todo o texto da omnibar ao focar para digitação imediata
+    this.urlInput.addEventListener('focus', () => {
+      this.urlInput.select();
+    });
+
     // Escuta novas abas solicitadas pelo processo principal
     if (window.__asclepioHost && window.__asclepioHost.onNewTabRequested) {
       window.__asclepioHost.onNewTabRequested((url) => {
@@ -222,7 +227,7 @@ class AsclepioBrowser {
 
     webviewEl.addEventListener('did-start-loading', () => {
       this.showLoadingProgress(45);
-      if (this.activeTabId === tabId) {
+      if (this.activeTabId === tabId && document.activeElement !== this.urlInput) {
         let currentUrl = null;
         try {
           if (typeof webviewEl.getURL === 'function') {
@@ -244,7 +249,7 @@ class AsclepioBrowser {
       try {
         if (typeof webviewEl.getURL === 'function') {
           const currentUrl = webviewEl.getURL();
-          if (currentUrl && this.activeTabId === tabId) {
+          if (currentUrl && this.activeTabId === tabId && document.activeElement !== this.urlInput) {
             this.urlInput.value = currentUrl;
           }
         }
@@ -253,7 +258,7 @@ class AsclepioBrowser {
     });
 
     webviewEl.addEventListener('did-navigate', (e) => {
-      if (this.activeTabId === tabId) {
+      if (this.activeTabId === tabId && document.activeElement !== this.urlInput) {
         this.urlInput.value = e.url;
       }
       // Atualiza favicon com base no domínio
@@ -266,7 +271,7 @@ class AsclepioBrowser {
     });
 
     webviewEl.addEventListener('did-navigate-in-page', (e) => {
-      if (this.activeTabId === tabId) {
+      if (this.activeTabId === tabId && document.activeElement !== this.urlInput) {
         this.urlInput.value = e.url;
       }
       this.updateNavControls();
@@ -283,6 +288,14 @@ class AsclepioBrowser {
       }
     });
 
+    // Clique com botão do meio (scroll wheel) fecha a aba
+    tabEl.addEventListener('auxclick', (e) => {
+      if (e.button === 1) {
+        e.preventDefault();
+        this.closeTab(tabId);
+      }
+    });
+
     tabEl.querySelector('.tab-close').addEventListener('click', (e) => {
       e.stopPropagation();
       this.closeTab(tabId);
@@ -293,6 +306,10 @@ class AsclepioBrowser {
 
     this.tabs.push({ id: tabId, tabEl, webviewEl });
     this.activateTab(tabId);
+    // Garante que a nova aba seja rolada para a visão
+    try {
+      tabEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+    } catch (_) {}
   }
 
   activateTab(tabId) {
@@ -308,7 +325,9 @@ class AsclepioBrowser {
           }
         } catch (e) {}
         u = u || t.webviewEl.getAttribute('src') || '';
-        if (u && this.urlInput.value !== u) this.urlInput.value = u;
+        if (u && this.urlInput.value !== u && document.activeElement !== this.urlInput) {
+          this.urlInput.value = u;
+        }
       } else {
         t.tabEl.classList.remove('active');
         t.webviewEl.classList.remove('active');
@@ -337,7 +356,8 @@ class AsclepioBrowser {
     if (this.tabs.length === 0) {
       this.createTab();
     } else if (this.activeTabId === tabId) {
-      const nextTab = this.tabs[Math.max(0, index - 1)];
+      const nextIndex = Math.min(index, this.tabs.length - 1);
+      const nextTab = this.tabs[nextIndex];
       this.activateTab(nextTab.id);
     }
   }

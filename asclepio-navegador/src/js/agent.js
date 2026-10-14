@@ -938,6 +938,42 @@ class AsclepioAgent {
     }
   }
 
+  async handleQuickAction(action) {
+    this.openPanel();
+    switch (action) {
+      case 'summarize': {
+        const ctx = await this.getActivePageContext();
+        await this.handleUserPrompt(`Por favor, faça um resumo executivo claro, estruturado e em tópicos da página atual: "${ctx.title}" (${ctx.url})`);
+        break;
+      }
+      case 'observe': {
+        const loadingId = this.appendLoadingMessage();
+        this.updateStepMessage(loadingId, '🧭 Observando a página e mapeando elementos interativos…');
+        if (window.browserController) {
+          const res = await window.browserController.observe();
+          this.replaceLoadingMessage(loadingId, res?.text || 'Observação concluída.');
+        } else {
+          this.replaceLoadingMessage(loadingId, 'Controlador do navegador indisponível.');
+        }
+        break;
+      }
+      case 'extract': {
+        const loadingId = this.appendLoadingMessage();
+        this.updateStepMessage(loadingId, '📊 Extraindo dados e informações estruturadas da página…');
+        if (window.browserController) {
+          const res = await window.browserController.extract('Extrair os principais dados, tabelas, tópicos e valores');
+          this.replaceLoadingMessage(loadingId, res?.text || 'Extração de dados concluída.');
+        } else {
+          this.replaceLoadingMessage(loadingId, 'Controlador do navegador indisponível.');
+        }
+        break;
+      }
+      default:
+        await this.handleUserPrompt(action);
+        break;
+    }
+  }
+
   escapeHtml(str) {
     const div = document.createElement('div');
     div.textContent = str;

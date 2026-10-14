@@ -529,7 +529,7 @@ input, textarea {
 #webviews-container {
   flex: 1;
   position: relative;
-  background: #1a1a1a;
+  background: var(--color-app);
   overflow: hidden;
 }
 
@@ -562,19 +562,22 @@ input, textarea {
 webview {
   position: absolute !important;
   top: 0 !important;
-  left: 0 !important;
+  left: -99999px !important;
   width: 100% !important;
   height: 100% !important;
   border: none;
   background: #fff;
-  /* Hidden webviews: offscreen, not visible */
-  visibility: hidden;
+  /* Hidden webviews: offscreen para culling total de GPU/CPU no Chromium */
+  visibility: hidden !important;
+  opacity: 0 !important;
   z-index: 0;
-  pointer-events: none;
+  pointer-events: none !important;
 }
 
 webview.active {
+  left: 0 !important;
   visibility: visible !important;
+  opacity: 1 !important;
   z-index: 10 !important;
   pointer-events: auto !important;
 }

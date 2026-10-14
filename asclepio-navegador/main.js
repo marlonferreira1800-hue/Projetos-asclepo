@@ -5,11 +5,15 @@ const { spawn } = require('child_process');
 const { ElectronBlocker } = require('@cliqz/adblocker-electron');
 const fetch = require('cross-fetch');
 
-const logFile = path.join(__dirname, 'asclepio_debug.log');
+const userDataDir = path.join(app.getPath('appData'), 'AsclepioBrowser');
+try { if (!fs.existsSync(userDataDir)) fs.mkdirSync(userDataDir, { recursive: true }); } catch (_) {}
+const logFile = path.join(userDataDir, 'asclepio_debug.log');
+
 function log(msg) {
-  const line = `[${new Date().toISOString()}] ${msg}\n`;
-  try { fs.appendFileSync(logFile, line); } catch (_) {}
   console.log(msg);
+  try {
+    fs.appendFile(logFile, `[${new Date().toISOString()}] ${msg}\n`, () => {});
+  } catch (_) {}
 }
 
 process.on('uncaughtException', (err) => {
@@ -20,7 +24,7 @@ process.on('unhandledRejection', (reason) => {
 });
 
 log(`[Asclepio Main] Starting process PID: ${process.pid}`);
-app.setPath('userData', path.join(app.getPath('appData'), 'AsclepioBrowser'));
+app.setPath('userData', userDataDir);
 const gotTheLock = app.requestSingleInstanceLock();
 log(`[Asclepio Main] gotTheLock: ${gotTheLock}`);
 if (!gotTheLock) {
@@ -37,6 +41,8 @@ app.commandLine.appendSwitch('ignore-gpu-blocklist');
 app.commandLine.appendSwitch('enable-features', 'VaapiVideoDecoder,CanvasOopRasterization,SmoothScrolling');
 app.commandLine.appendSwitch('js-flags', '--max-old-space-size=4096');
 app.commandLine.appendSwitch('enable-fast-unload');
+app.commandLine.appendSwitch('disable-renderer-backgrounding');
+app.commandLine.appendSwitch('disable-backgrounding-occluded-windows');
 
 const CHROME_UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
@@ -55,7 +61,7 @@ function createWindow() {
     minWidth: 1100,
     minHeight: 680,
     title: 'Asclepio',
-    backgroundColor: '#202020',      // --cn-900: Polar dark
+    backgroundColor: '#F8F6F5',      // Polar Light White (elimina flash escuro #202020)
     frame: true,
     show: true,
     webPreferences: {
@@ -87,9 +93,11 @@ function createWindow() {
     log(`[Asclepio Main] index.html did-fail-load: code ${code}, desc: ${desc}`);
   });
 
-  // Log renderer errors
+  // Log renderer errors only (evita overhead de disco com I/O síncrono em tráfego web)
   mainWindow.webContents.on('console-message', (_event, level, message, line, sourceId) => {
-    log(`[Asclepio:${level >= 3 ? 'ERROR' : 'LOG'}] ${message} (${sourceId}:${line})`);
+    if (level >= 3) {
+      log(`[Asclepio:ERROR] ${message} (${sourceId}:${line})`);
+    }
   });
 
   log('[Asclepio Main] Loading index.html...');

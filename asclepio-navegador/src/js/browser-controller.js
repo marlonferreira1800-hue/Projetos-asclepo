@@ -1142,13 +1142,24 @@ class BrowserController {
   async extract(instruction = 'Extrair tópicos principais e dados') {
     this.startAgentAura(`📊 Extraindo dados da página…`);
     try {
-      const inspect = await this.inspectInteractiveElements();
-      const pageText = inspect ? (inspect.headings.join('\n') + '\n' + inspect.paragraphs.slice(0, 15).join('\n')) : '';
+      const wv = this.getWebview();
+      let pageText = '';
+      if (wv) {
+        try {
+          pageText = await wv.executeJavaScript(`
+            (() => {
+              const headings = Array.from(document.querySelectorAll('h1, h2, h3, h4')).map(h => (h.innerText || '').trim()).filter(Boolean);
+              const paragraphs = Array.from(document.querySelectorAll('p, article, li, [role="article"]')).map(p => (p.innerText || '').trim()).filter(Boolean).slice(0, 30);
+              return headings.join('\\n') + '\\n\\n' + paragraphs.join('\\n');
+            })();
+          `);
+        } catch (_) {}
+      }
 
       if (window.__asclepioHost?.extractData) {
         return await window.__asclepioHost.extractData({
           instruction,
-          pageText
+          pageText: (pageText || '').slice(0, 4000)
         });
       }
       return { success: false, text: 'Host de extração indisponível.' };
@@ -1163,8 +1174,12 @@ class BrowserController {
     try {
       const elementMap = await this.highlightElementsAndGetMap();
       const wv = this.getWebview();
-      const pageTitle = wv ? wv.getTitle() : 'Página Ativa';
-      const pageUrl = wv ? wv.getURL() : '';
+      let pageTitle = 'Página Ativa';
+      let pageUrl = '';
+      try {
+        if (wv && typeof wv.getTitle === 'function') pageTitle = wv.getTitle() || pageTitle;
+        if (wv && typeof wv.getURL === 'function') pageUrl = wv.getURL() || pageUrl;
+      } catch (_) {}
 
       setTimeout(() => this.clearBadges(), 3500);
 
