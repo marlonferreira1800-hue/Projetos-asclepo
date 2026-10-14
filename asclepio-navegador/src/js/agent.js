@@ -212,9 +212,9 @@ class AsclepioAgent {
     try {
       const pageInfo = await wv.executeJavaScript(`
         ({
-          title: document.title,
+          title: (document.title || '').trim(),
           url: window.location.href,
-          text: document.body ? document.body.innerText.slice(0, 3500) : ''
+          text: document.body ? document.body.innerText.replace(/\\s+/g, ' ').trim().slice(0, 3200) : ''
         })
       `);
       return pageInfo;

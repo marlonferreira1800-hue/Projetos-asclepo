@@ -5,25 +5,33 @@ class AgentCursor {
     this.labelEl = document.getElementById('cursor-label');
     this.x = window.innerWidth / 2;
     this.y = window.innerHeight / 2;
+    this._hideTimer = null;
     this.init();
   }
 
   init() {
     if (!this.cursorEl) return;
+    this.cursorEl.style.willChange = 'transform';
     this.cursorEl.style.transform = `translate3d(${this.x}px, ${this.y}px, 0)`;
   }
 
   show(text = "Asclepio AI") {
     if (!this.cursorEl) return;
+    if (this._hideTimer) {
+      clearTimeout(this._hideTimer);
+      this._hideTimer = null;
+    }
     this.cursorEl.classList.add('visible');
     if (this.labelEl) this.labelEl.textContent = text;
   }
 
   hide() {
     if (!this.cursorEl) return;
-    setTimeout(() => {
+    if (this._hideTimer) clearTimeout(this._hideTimer);
+    this._hideTimer = setTimeout(() => {
       this.cursorEl.classList.remove('visible');
-    }, 1000);
+      this._hideTimer = null;
+    }, 900);
   }
 
   async moveTo(x, y, duration = 600, label = "Asclepio AI") {
@@ -61,6 +69,7 @@ class AgentCursor {
   spawnRipple(x, y) {
     const rip = document.createElement('div');
     rip.className = 'agent-ripple';
+    rip.style.willChange = 'transform, opacity';
     rip.style.left = `${x}px`;
     rip.style.top = `${y}px`;
     document.body.appendChild(rip);

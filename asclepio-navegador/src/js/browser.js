@@ -298,6 +298,7 @@ class AsclepioBrowser {
   activateTab(tabId) {
     this.tabs.forEach((t) => {
       if (t.id === tabId) {
+        t.lastAccessed = Date.now();
         t.tabEl.classList.add('active');
         t.webviewEl.classList.add('active');
         let u = null;
@@ -307,7 +308,7 @@ class AsclepioBrowser {
           }
         } catch (e) {}
         u = u || t.webviewEl.getAttribute('src') || '';
-        if (u) this.urlInput.value = u;
+        if (u && this.urlInput.value !== u) this.urlInput.value = u;
       } else {
         t.tabEl.classList.remove('active');
         t.webviewEl.classList.remove('active');
@@ -322,6 +323,13 @@ class AsclepioBrowser {
     if (index === -1) return;
 
     const tab = this.tabs[index];
+
+    // Otimização de Memória: para o processo de renderização e descarrega o webview
+    try {
+      if (typeof tab.webviewEl.stop === 'function') tab.webviewEl.stop();
+      tab.webviewEl.src = 'about:blank';
+    } catch (_) {}
+
     tab.tabEl.remove();
     tab.webviewEl.remove();
     this.tabs.splice(index, 1);

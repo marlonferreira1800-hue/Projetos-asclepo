@@ -502,17 +502,24 @@ class BrowserController {
       const coords = await wv.executeJavaScript(`
         (() => {
           const q = ${JSON.stringify(q)};
-          const elements = Array.from(document.querySelectorAll('button, a, input[type="button"], input[type="submit"], [role="button"], [role="link"], [role="tab"], [role="menuitem"], .btn, h3, h2, span, p'));
-
-          let matched = null;
-          matched = elements.find(el => {
+          // Prioridade 1: Elementos interativos diretos (rápido e preciso)
+          let elements = Array.from(document.querySelectorAll('button, a, input[type="button"], input[type="submit"], [role="button"], [role="link"], [role="tab"], [role="menuitem"], .btn'));
+          let matched = elements.find(el => {
             const t = (el.innerText || el.textContent || el.getAttribute('aria-label') || el.getAttribute('title') || el.getAttribute('value') || '').trim().toLowerCase();
             return t === q;
+          }) || elements.find(el => {
+            const t = (el.innerText || el.textContent || el.getAttribute('aria-label') || el.getAttribute('title') || el.getAttribute('value') || '').trim().toLowerCase();
+            return t.length > 0 && (t.includes(q) || q.includes(t));
           });
 
+          // Prioridade 2: Títulos e textos gerais se não encontrou em botões/links
           if (!matched) {
-            matched = elements.find(el => {
-              const t = (el.innerText || el.textContent || el.getAttribute('aria-label') || el.getAttribute('title') || el.getAttribute('value') || '').trim().toLowerCase();
+            const textContainers = Array.from(document.querySelectorAll('h1, h2, h3, h4, [role="heading"], label, span, p'));
+            matched = textContainers.find(el => {
+              const t = (el.innerText || el.textContent || el.getAttribute('aria-label') || el.getAttribute('title') || '').trim().toLowerCase();
+              return t === q;
+            }) || textContainers.find(el => {
+              const t = (el.innerText || el.textContent || el.getAttribute('aria-label') || el.getAttribute('title') || '').trim().toLowerCase();
               return t.length > 0 && (t.includes(q) || q.includes(t));
             });
           }
@@ -546,11 +553,18 @@ class BrowserController {
         await wv.executeJavaScript(`
           (() => {
             const q = ${JSON.stringify(q)};
-            const elements = Array.from(document.querySelectorAll('button, a, input[type="button"], input[type="submit"], [role="button"], [role="link"], [role="tab"], [role="menuitem"], .btn, h3, h2, span, p'));
+            let elements = Array.from(document.querySelectorAll('button, a, input[type="button"], input[type="submit"], [role="button"], [role="link"], [role="tab"], [role="menuitem"], .btn'));
             let el = elements.find(e => {
               const t = (e.innerText || e.textContent || e.getAttribute('aria-label') || e.getAttribute('title') || '').trim().toLowerCase();
               return t === q || t.includes(q) || q.includes(t);
             });
+            if (!el) {
+              const textContainers = Array.from(document.querySelectorAll('h1, h2, h3, h4, label, span, p'));
+              el = textContainers.find(e => {
+                const t = (e.innerText || e.textContent || e.getAttribute('aria-label') || e.getAttribute('title') || '').trim().toLowerCase();
+                return t === q || t.includes(q) || q.includes(t);
+              });
+            }
             if (!el) {
               try { el = document.querySelector(q); } catch(e) {}
             }
@@ -590,6 +604,8 @@ class BrowserController {
           const interactives = Array.from(document.querySelectorAll('button, a[href], input:not([type="hidden"]), textarea, select, [role="button"], [role="link"]'));
           const visible = [];
           for (const el of interactives) {
+            // Otimização: pula elementos sem dimensão física antes de chamar getBoundingClientRect
+            if (el.offsetWidth <= 0 || el.offsetHeight <= 0) continue;
             const r = el.getBoundingClientRect();
             if (r.width > 12 && r.height > 12 && r.top >= 0 && r.top <= window.innerHeight && r.left >= 0 && r.left <= window.innerWidth) {
               const text = (el.innerText || el.getAttribute('aria-label') || el.getAttribute('placeholder') || el.getAttribute('title') || el.getAttribute('value') || '').trim().slice(0, 50);
@@ -854,34 +870,30 @@ class BrowserController {
     try {
       return await wv.executeJavaScript(`
         (() => {
-          // BUG FIX 6: Container de overlay fixo no viewport para crachás SoM sem drift
+          // Container de overlay fixo no viewport para crachás SoM sem drift
           let overlay = document.getElementById('asclepio-som-overlay');
           if (overlay) overlay.remove();
           overlay = document.createElement('div');
           overlay.id = 'asclepio-som-overlay';
-          overlay.style.position = 'fixed';
-          overlay.style.inset = '0';
-          overlay.style.pointerEvents = 'none';
-          overlay.style.zIndex = '2147483647';
-          overlay.style.overflow = 'hidden';
+          overlay.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:2147483647;overflow:hidden;';
           document.body.appendChild(overlay);
 
           const interactables = Array.from(document.querySelectorAll(
             'button, a, input, select, textarea, [role="button"], [role="link"], [role="tab"], [role="menuitem"], [tabindex="0"]'
           )).filter(el => {
+            // Otimização de Layout: descarta rapidamente elementos sem dimensões antes do getBoundingClientRect/getComputedStyle
+            if (el.offsetWidth <= 0 || el.offsetHeight <= 0) return false;
             const rect = el.getBoundingClientRect();
+            if (rect.width <= 8 || rect.height <= 8 || rect.top >= window.innerHeight || rect.bottom <= 0) return false;
             const style = window.getComputedStyle(el);
             return (
-              rect.width > 8 &&
-              rect.height > 8 &&
               style.visibility !== 'hidden' &&
               style.display !== 'none' &&
-              style.opacity !== '0' &&
-              rect.top < window.innerHeight &&
-              rect.bottom > 0
+              style.opacity !== '0'
             );
           });
 
+          const fragment = document.createDocumentFragment();
           const elementMap = [];
           interactables.slice(0, 60).forEach((el, index) => {
             const id = index + 1;
@@ -890,23 +902,11 @@ class BrowserController {
             const badge = document.createElement('div');
             badge.className = 'asclepio-som-badge';
             badge.innerText = id;
-            badge.style.position = 'fixed';
-            badge.style.background = '#01BAEF';
-            badge.style.color = '#FFFFFF';
-            badge.style.fontSize = '11px';
-            badge.style.fontWeight = '700';
-            badge.style.fontFamily = 'monospace, sans-serif';
-            badge.style.padding = '1px 5px';
-            badge.style.borderRadius = '4px';
-            badge.style.boxShadow = '0 2px 8px rgba(1, 186, 239, 0.45)';
-            badge.style.zIndex = '2147483647';
-            badge.style.pointerEvents = 'none';
-            badge.style.lineHeight = '14px';
-
             const rect = el.getBoundingClientRect();
-            badge.style.top = Math.max(2, Math.round(rect.top - 2)) + 'px';
-            badge.style.left = Math.max(2, Math.round(rect.left - 2)) + 'px';
-            overlay.appendChild(badge);
+            const top = Math.max(2, Math.round(rect.top - 2));
+            const left = Math.max(2, Math.round(rect.left - 2));
+            badge.style.cssText = 'position:fixed;background:#01BAEF;color:#FFF;font-size:11px;font-weight:700;font-family:monospace,sans-serif;padding:1px 5px;border-radius:4px;box-shadow:0 2px 8px rgba(1,186,239,0.45);z-index:2147483647;pointer-events:none;line-height:14px;top:' + top + 'px;left:' + left + 'px;';
+            fragment.appendChild(badge);
 
             elementMap.push({
               id: id,
@@ -916,6 +916,9 @@ class BrowserController {
               role: el.getAttribute('role') || null
             });
           });
+
+          // Inserção atômica em lote no DOM via DocumentFragment (1 único reflow)
+          overlay.appendChild(fragment);
 
           return elementMap;
         })();

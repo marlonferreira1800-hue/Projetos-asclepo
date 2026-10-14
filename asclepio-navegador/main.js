@@ -30,6 +30,14 @@ if (!gotTheLock) {
 }
 
 
+// ─── OTIMIZAÇÕES DE HARDWARE, GPU E MEMÓRIA V8 (Chrome 134 Engine) ──────────
+app.commandLine.appendSwitch('enable-gpu-rasterization');
+app.commandLine.appendSwitch('enable-zero-copy');
+app.commandLine.appendSwitch('ignore-gpu-blocklist');
+app.commandLine.appendSwitch('enable-features', 'VaapiVideoDecoder,CanvasOopRasterization,SmoothScrolling');
+app.commandLine.appendSwitch('js-flags', '--max-old-space-size=4096');
+app.commandLine.appendSwitch('enable-fast-unload');
+
 const CHROME_UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
   '(KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36';
@@ -131,15 +139,40 @@ app.whenReady().then(() => {
     callback({ responseHeaders: headers });
   });
 
-  // ── PASSO 5: ADBLOCKER NATIVO NO NÍVEL DE REDE (Engine Brave / Ghostery) ──
+  // ── PASSO 5: ADBLOCKER NATIVO COM CACHE LOCAL INSTANTÂNEO ──
+  const adblockerCacheFile = path.join(app.getPath('userData'), 'adblocker-cache.bin');
+  const enableBlocker = (blocker) => {
+    blocker.enableBlockingInSession(defaultSess);
+    blocker.enableBlockingInSession(persistSess);
+    log('[Asclepio Main] Adblocker nativo ativado com sucesso em todas as sessões!');
+  };
+
   try {
-    ElectronBlocker.fromPrebuiltAdsAndTracking(fetch).then((blocker) => {
-      blocker.enableBlockingInSession(defaultSess);
-      blocker.enableBlockingInSession(persistSess);
-      log('[Asclepio Main] Adblocker nativo ativado com sucesso em todas as sessões!');
-    }).catch(err => {
-      log(`[Asclepio Main] Aviso ao baixar listas do adblocker: ${err.message}`);
-    });
+    if (fs.existsSync(adblockerCacheFile)) {
+      try {
+        const buffer = fs.readFileSync(adblockerCacheFile);
+        const blocker = ElectronBlocker.deserialize(buffer);
+        enableBlocker(blocker);
+        log('[Asclepio Main] Adblocker carregado instantaneamente do cache em disco (<15ms)!');
+      } catch (cacheErr) {
+        log(`[Asclepio Main] Cache do adblocker corrompido, rebaixando: ${cacheErr.message}`);
+        try { fs.unlinkSync(adblockerCacheFile); } catch (_) {}
+        ElectronBlocker.fromPrebuiltAdsAndTracking(fetch).then((blocker) => {
+          enableBlocker(blocker);
+          try { fs.writeFileSync(adblockerCacheFile, Buffer.from(blocker.serialize())); } catch (_) {}
+        });
+      }
+    } else {
+      ElectronBlocker.fromPrebuiltAdsAndTracking(fetch).then((blocker) => {
+        enableBlocker(blocker);
+        try {
+          fs.writeFileSync(adblockerCacheFile, Buffer.from(blocker.serialize()));
+          log('[Asclepio Main] Cache do adblocker salvo com sucesso no disco para próximas aberturas!');
+        } catch (_) {}
+      }).catch(err => {
+        log(`[Asclepio Main] Aviso ao baixar listas do adblocker: ${err.message}`);
+      });
+    }
   } catch (err) {
     log(`[Asclepio Main] Falha no adblocker: ${err.message}`);
   }
