@@ -197,7 +197,6 @@ class AsclepioBrowser {
     // Cria o webview com User-Agent real do Chrome e partição persistente
     const webviewEl = document.createElement('webview');
     webviewEl.id = `wv-${tabId}`;
-    webviewEl.setAttribute('src', url);
     webviewEl.setAttribute('partition', 'persist:asclepio');
     webviewEl.setAttribute('useragent', CHROME_UA);
     webviewEl.setAttribute('allowpopups', 'true');
@@ -214,9 +213,8 @@ class AsclepioBrowser {
     // Extrai favicon e título
     webviewEl.addEventListener('page-title-updated', (e) => {
       const titleSpan = tabEl.querySelector('.tab-title');
-      if (titleSpan) titleSpan.textContent = e.title;
+      if (titleSpan && e.title) titleSpan.textContent = e.title;
     });
-
 
     webviewEl.addEventListener('page-favicon-updated', (e) => {
       if (e.favicons && e.favicons.length > 0) {
@@ -243,6 +241,17 @@ class AsclepioBrowser {
     webviewEl.addEventListener('did-stop-loading', () => {
       this.showLoadingProgress(100);
       this.updateNavControls();
+      try {
+        if (typeof webviewEl.getTitle === 'function') {
+          const t = webviewEl.getTitle();
+          if (t && t !== 'about:blank' && t !== '') {
+            const titleSpan = tabEl.querySelector('.tab-title');
+            if (titleSpan && titleSpan.textContent === 'Carregando...') {
+              titleSpan.textContent = t;
+            }
+          }
+        }
+      } catch (_) {}
     });
 
     webviewEl.addEventListener('dom-ready', () => {
@@ -279,6 +288,8 @@ class AsclepioBrowser {
 
     webviewEl.addEventListener('did-fail-load', (e) => {
       this.showLoadingProgress(100);
+      const titleSpan = tabEl.querySelector('.tab-title');
+      if (titleSpan) titleSpan.textContent = 'Erro ao carregar';
       console.warn(`[Webview] Falha ao carregar ${e.validatedURL}: ${e.errorDescription} (${e.errorCode})`);
     });
 
@@ -303,6 +314,11 @@ class AsclepioBrowser {
 
     this.tabsContainer.appendChild(tabEl);
     this.webviewsContainer.appendChild(webviewEl);
+
+    // CRÍTICO NO ELECTRON: Atribuir 'src' somente após o elemento webview estar montado no DOM
+    if (url) {
+      webviewEl.setAttribute('src', url);
+    }
 
     this.tabs.push({ id: tabId, tabEl, webviewEl });
     this.activateTab(tabId);

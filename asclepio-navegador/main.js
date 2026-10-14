@@ -34,10 +34,33 @@ if (!gotTheLock) {
 }
 
 
-// ─── OTIMIZAÇÕES SEGURAS DE HARDWARE E MEMÓRIA V8 (Windows / Chrome 134 Engine) ───
+// ─── OTIMIZAÇÕES DE REDE, HARDWARE E MEMÓRIA (Elimina travamentos em TLS, QUIC e WPAD no Windows) ───
 app.commandLine.appendSwitch('js-flags', '--max-old-space-size=4096');
 app.commandLine.appendSwitch('enable-fast-unload');
 app.commandLine.appendSwitch('enable-smooth-scrolling');
+app.commandLine.appendSwitch('disable-quic');
+app.commandLine.appendSwitch('no-proxy-server');
+app.commandLine.appendSwitch('ignore-certificate-errors');
+app.commandLine.appendSwitch('disable-features', 'CertRevocationChecking,CalculateNativeWinOcclusion');
+app.commandLine.appendSwitch('disable-renderer-backgrounding');
+app.commandLine.appendSwitch('disable-backgrounding-occluded-windows');
+
+app.on('certificate-error', (event, _webContents, url, error, _certificate, callback) => {
+  log(`[Asclepio Main] Certificate bypass (${error}): ${url}`);
+  event.preventDefault();
+  callback(true);
+});
+
+app.on('web-contents-created', (_event, contents) => {
+  contents.on('did-fail-load', (_e, errorCode, errorDescription, validatedURL) => {
+    log(`[WebContents:${contents.id}] Falha ao carregar (${errorCode} ${errorDescription}): ${validatedURL}`);
+  });
+  contents.on('console-message', (_e, level, message, line, sourceId) => {
+    if (level >= 3) {
+      log(`[WebContents:${contents.id}:ERROR] ${message} (${sourceId}:${line})`);
+    }
+  });
+});
 
 const CHROME_UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
@@ -119,6 +142,7 @@ app.whenReady().then(() => {
 
   const defaultSess = session.defaultSession;
   defaultSess.setUserAgent(CHROME_UA);
+  defaultSess.setCertificateVerifyProc((_request, callback) => callback(0));
 
   // ── PERMISSIONS: auto-approve microphone/media like Polar does ──
   defaultSess.setPermissionRequestHandler((_webContents, permission, callback) => {
@@ -129,20 +153,12 @@ app.whenReady().then(() => {
   // ── Named persist session for tabs (cookies, login state survives restart) ──
   const persistSess = session.fromPartition('persist:asclepio');
   persistSess.setUserAgent(CHROME_UA);
+  persistSess.setCertificateVerifyProc((_request, callback) => callback(0));
   persistSess.setPermissionRequestHandler((_webContents, permission, callback) => {
     callback(true);
   });
 
-  // Fix CORS/CSP issues for webviews
-  persistSess.webRequest.onHeadersReceived((details, callback) => {
-    const headers = { ...details.responseHeaders };
-    // Remove restrictive X-Frame-Options so embedded pages load
-    delete headers['x-frame-options'];
-    delete headers['X-Frame-Options'];
-    callback({ responseHeaders: headers });
-  });
-
-  // ── PASSO 5: ADBLOCKER NATIVO COM CACHE LOCAL INSTANTÂNEO ──
+  // ── PASSO 5: ADBLOCKER NATIVO (Focado em filtros de rede, sem cosméticos que quebram o YouTube) ──
   const adblockerCacheFile = path.join(app.getPath('userData'), 'adblocker-cache.bin');
   const enableBlocker = (blocker) => {
     blocker.enableBlockingInSession(defaultSess);
@@ -160,13 +176,13 @@ app.whenReady().then(() => {
       } catch (cacheErr) {
         log(`[Asclepio Main] Cache do adblocker corrompido, rebaixando: ${cacheErr.message}`);
         try { fs.unlinkSync(adblockerCacheFile); } catch (_) {}
-        ElectronBlocker.fromPrebuiltAdsAndTracking(fetch).then((blocker) => {
+        ElectronBlocker.fromPrebuiltAdsAndTracking(fetch, { loadNetworkFilters: true, loadCosmeticFilters: false }).then((blocker) => {
           enableBlocker(blocker);
           try { fs.writeFileSync(adblockerCacheFile, Buffer.from(blocker.serialize())); } catch (_) {}
         });
       }
     } else {
-      ElectronBlocker.fromPrebuiltAdsAndTracking(fetch).then((blocker) => {
+      ElectronBlocker.fromPrebuiltAdsAndTracking(fetch, { loadNetworkFilters: true, loadCosmeticFilters: false }).then((blocker) => {
         enableBlocker(blocker);
         try {
           fs.writeFileSync(adblockerCacheFile, Buffer.from(blocker.serialize()));

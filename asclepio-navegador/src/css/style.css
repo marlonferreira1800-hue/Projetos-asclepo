@@ -560,13 +560,14 @@ input, textarea {
 
 /* Webview base */
 webview {
+  display: flex !important;
   position: absolute !important;
   top: 0 !important;
   left: 0 !important;
   width: 100% !important;
   height: 100% !important;
   border: none;
-  background: #fff;
+  background: transparent;
   visibility: hidden;
   opacity: 0;
   z-index: 0;
@@ -574,6 +575,7 @@ webview {
 }
 
 webview.active {
+  display: flex !important;
   left: 0 !important;
   visibility: visible !important;
   opacity: 1 !important;
