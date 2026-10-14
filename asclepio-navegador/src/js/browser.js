@@ -225,16 +225,6 @@ class AsclepioBrowser {
 
     webviewEl.addEventListener('did-start-loading', () => {
       this.showLoadingProgress(45);
-      if (this.activeTabId === tabId && document.activeElement !== this.urlInput) {
-        let currentUrl = null;
-        try {
-          if (typeof webviewEl.getURL === 'function') {
-            currentUrl = webviewEl.getURL();
-          }
-        } catch (e) {}
-        currentUrl = currentUrl || webviewEl.getAttribute('src') || url;
-        if (currentUrl) this.urlInput.value = currentUrl;
-      }
       this.updateNavControls();
     });
 
@@ -359,12 +349,6 @@ class AsclepioBrowser {
 
     const tab = this.tabs[index];
 
-    // Otimização de Memória: para o processo de renderização e descarrega o webview
-    try {
-      if (typeof tab.webviewEl.stop === 'function') tab.webviewEl.stop();
-      tab.webviewEl.src = 'about:blank';
-    } catch (_) {}
-
     tab.tabEl.remove();
     tab.webviewEl.remove();
     this.tabs.splice(index, 1);
@@ -391,18 +375,22 @@ class AsclepioBrowser {
     if (wv) {
       const tab = this.tabs.find((t) => t.id === this.activeTabId);
       if (tab) {
+        tab.url = target;
         tab.tabEl.querySelector('.tab-title').textContent = 'Carregando...';
       }
 
       try {
         if (typeof wv.loadURL === 'function') {
-          wv.loadURL(target);
+          const loadPromise = wv.loadURL(target);
+          if (loadPromise && typeof loadPromise.catch === 'function') {
+            loadPromise.catch(() => {});
+          }
         } else {
           wv.setAttribute('src', target);
         }
       } catch (err) {
-        console.warn('[Asclepio] Erro em loadURL, aplicando src:', err);
-        wv.setAttribute('src', target);
+        console.warn('[Asclepio] Erro ao navegar:', err);
+        try { wv.setAttribute('src', target); } catch (_) {}
       }
     }
   }
