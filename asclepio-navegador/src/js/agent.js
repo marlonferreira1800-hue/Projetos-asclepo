@@ -401,20 +401,45 @@ class AsclepioAgent {
       return;
     }
 
-    // 10. Clique Direto em Elementos da Página (ex: "clica em entrar", "clica no botão pesquisar", "clica em vagas")
-    const clickIntent = lower.match(/(?:clica(?:r)?|aperta(?:r)?|pressiona(?:r)?|seleciona(?:r)?)\s+(?:no\s+|na\s+|em\s+|o\s+|a\s+)?(?:bot[aã]o\s+|link\s+)?["']?(.+?)["']?$/i);
-    if (clickIntent && window.browserController && !lower.includes('primeiro') && !lower.includes('vídeo') && !lower.includes('video')) {
-      const targetText = clickIntent[1].trim();
-      const res = await window.browserController.smartClick(targetText);
-      if (res && res.success) {
-        this.appendSystemMessage(`🖱️ **Clicado em "${res.text || targetText}" com sucesso!**`);
-      } else {
-        this.appendSystemMessage(`ℹ️ Não encontrei o elemento "${targetText}" visível nesta página.`);
+    // 10. PRIMITIVA OBSERVE (STAGEHAND): "observe", "o que posso fazer aqui?", "quais ações?"
+    if (/^(?:observe|observar|o que posso fazer( aqui)?|quais (as )?a[çc][oõ]es|analise a tela|o que tem (nessa|nesta) p[aá]gina)$/i.test(lower)) {
+      if (window.browserController) {
+        const loadingId = this.appendLoadingMessage();
+        this.updateStepMessage(loadingId, '🔍 Analisando elementos interativos da página…');
+        const res = await window.browserController.observe();
+        const text = typeof res === 'object' && res.text ? res.text : String(res || 'Não foi possível observar a página.');
+        this.replaceLoadingMessage(loadingId, `🧭 **Ações observadas na página:**\n\n${text}`);
       }
       return;
     }
 
-    // 11. Digitação Direta em Campos da Página (ex: "digita Marlon no campo de pesquisa")
+    // 11. PRIMITIVA EXTRACT (STAGEHAND): "extrair dados", "extraia tabela", "extraia preços", etc.
+    const extractIntent = lower.match(/(?:extrai(?:r)?|raspa(?:r)?|coleta(?:r)?)\s+(?:os\s+)?(?:dados|informa[çc][oõ]es|tabela|pre[çc]os?|vagas?|valores?)(?:\s+(?:de|da|do|desta|sobre)\s+(.+))?/i);
+    if (extractIntent && window.browserController) {
+      const loadingId = this.appendLoadingMessage();
+      this.updateStepMessage(loadingId, '📊 Sintetizando e extraindo dados da página…');
+      const res = await window.browserController.extract(prompt);
+      const text = typeof res === 'object' && res.text ? res.text : String(res || 'Extração concluída.');
+      this.replaceLoadingMessage(loadingId, text);
+      return;
+    }
+
+    // 12. PRIMITIVA ACT (STAGEHAND + BROWSER-USE SoM + VISION GROUNDING):
+    // Clica ou aciona elementos usando crachás numerados SoM ou visão computacional
+    const clickIntent = lower.match(/(?:clica(?:r)?|aperta(?:r)?|pressiona(?:r)?|seleciona(?:r)?)\s+(?:no\s+|na\s+|em\s+|o\s+|a\s+)?(?:bot[aã]o\s+|link\s+)?["']?(.+?)["']?$/i);
+    if (clickIntent && window.browserController && !lower.includes('primeiro') && !lower.includes('vídeo') && !lower.includes('video')) {
+      const targetText = clickIntent[1].trim();
+      const res = await window.browserController.act(prompt);
+      if (res && res.success) {
+        const methodBadge = res.method === 'set-of-marks' ? '🏷️ [Set-of-Marks]' : res.method === 'multimodal-vision' ? '👁️ [Visão Computacional]' : '🖱️ [SmartClick]';
+        this.appendSystemMessage(`✅ **Ação executada com sucesso!** ${methodBadge}\n• Alvo: "${targetText}"${res.reason ? `\n• Raciocínio: ${res.reason}` : ''}`);
+      } else {
+        this.appendSystemMessage(`ℹ️ Não consegui acionar "${targetText}" nesta página.`);
+      }
+      return;
+    }
+
+    // 13. Digitação Direta em Campos da Página (ex: "digita Marlon no campo de pesquisa")
     const typeIntent = lower.match(/(?:digita(?:r)?|escreve(?:r)?|preenche(?:r)?)\s+["']?(.+?)["']?\s+(?:no\s+|na\s+|em\s+)(.+)/i);
     if (typeIntent && window.browserController) {
       const textToType = typeIntent[1].trim();
@@ -423,6 +448,7 @@ class AsclepioAgent {
       this.appendSystemMessage(`✍️ **"${textToType}" digitado no campo.**`);
       return;
     }
+
 
     // 4. Intenção Direta de Tocar Música / Vídeo (mesmo sem falar "YouTube")
     // Exemplos: "coloque a musica justir bibeber beber", "toca a musica em teus braços", "toca justin", "quero ouvir em teus braços"
@@ -579,16 +605,31 @@ class AsclepioAgent {
       const prompt = `Resuma os pontos principais desta página web de forma clara e estruturada.`;
       this.appendUserMessage(`📝 Resumir a página atual (${ctx.title || 'Página Web'})`);
       await this.queryAntigravity(prompt, ctx);
+    } else if (action === 'observe') {
+      this.appendUserMessage(`🧭 Observar possíveis ações nesta página`);
+      if (window.browserController) {
+        const loadingId = this.appendLoadingMessage();
+        this.updateStepMessage(loadingId, '🔍 Mapeando elementos e ações disponíveis…');
+        const res = await window.browserController.observe();
+        const text = typeof res === 'object' && res.text ? res.text : String(res || 'Não foi possível observar a página.');
+        this.replaceLoadingMessage(loadingId, `🧭 **Ações sugeridas pelo Stagehand Observe:**\n\n${text}`);
+      }
+    } else if (action === 'extract') {
+      this.appendUserMessage(`📊 Extrair dados principais da página`);
+      if (window.browserController) {
+        const loadingId = this.appendLoadingMessage();
+        this.updateStepMessage(loadingId, '📊 Sintetizando dados e tabelas da página…');
+        const res = await window.browserController.extract('Extraia os dados, números, valores e tabelas mais relevantes desta página');
+        const text = typeof res === 'object' && res.text ? res.text : String(res || 'Extração concluída.');
+        this.replaceLoadingMessage(loadingId, text);
+      }
     } else if (action === 'explain') {
       const prompt = `Explique do que se trata esta página e seus principais conceitos.`;
       this.appendUserMessage(`💡 Explicar o conteúdo de ${ctx.title || 'Página Web'}`);
       await this.queryAntigravity(prompt, ctx);
-    } else if (action === 'extract') {
-      const prompt = `Extraia dados, tópicos chave e números mais relevantes apresentados no texto desta página.`;
-      this.appendUserMessage(`📊 Extrair dados principais da página`);
-      await this.queryAntigravity(prompt, ctx);
     }
   }
+
 
   async queryAntigravity(prompt, context) {
     const loadingId = this.appendLoadingMessage();
@@ -824,12 +865,13 @@ class AsclepioAgent {
         if (clickMatch) {
           const target = clickMatch[1];
           response = response.replace(/\[ACTION:CLICK\s+"[^"]+"\]/i, '').trim();
-          this.replaceLoadingMessage(loadingId, response || `🖱️ Clicando em "${target}"…`);
+          this.replaceLoadingMessage(loadingId, response || `🖱️ Acionando "${target}"…`);
           if (window.browserController) {
-            await window.browserController.smartClick(target);
+            await window.browserController.act(target);
           }
           return;
         }
+
 
         this.replaceLoadingMessage(loadingId, response || 'Sem resposta.');
       } else {

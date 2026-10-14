@@ -372,6 +372,115 @@ class AiRouter {
   getActiveModelInfo() {
     return this.models[this.currentModelIndex];
   }
+
+  // ── PASSO 3: GROUNDING VISUAL MULTIMODAL COM GEMINI 2.5 FLASH (OPEN-INTERPRETER) ──
+  async detectCoordinatesFromVision({ imageBase64, targetDescription }) {
+    const gemini = this.models.find(m => m.provider === 'google' && m.key);
+    if (!gemini || !imageBase64) {
+      return { found: false, error: 'Chave Gemini ou imagem ausente' };
+    }
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${gemini.id}:generateContent?key=${gemini.key}`;
+    const prompt =
+      `Você é um agente de visão computacional especialista em automação de navegadores.\n` +
+      `Analise a captura de tela fornecida e localize o elemento visual descrito como: "${targetDescription}".\n` +
+      `Responda ESTRITAMENTE com um objeto JSON no formato:\n` +
+      `{"found": true, "xPercent": 50.0, "yPercent": 25.0, "confidence": 0.95}\n` +
+      `Onde xPercent é a porcentagem horizontal (0 a 100 da esquerda para a direita) e yPercent é a vertical (0 a 100 do topo à base).\n` +
+      `Se não encontrar com clareza, responda: {"found": false}.\n` +
+      `NÃO inclua markdown ou explicações fora do JSON.`;
+
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { text: prompt },
+              {
+                inlineData: {
+                  mimeType: 'image/jpeg',
+                  data: imageBase64
+                }
+              }
+            ]
+          }],
+          generationConfig: {
+            temperature: 0.1,
+            maxOutputTokens: 256
+          }
+        })
+      });
+
+      const data = await res.json();
+      const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      const cleanJson = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+      const parsed = JSON.parse(cleanJson);
+      return parsed;
+    } catch (err) {
+      console.error('[AiRouter] Erro no Grounding Visual Gemini:', err.message);
+      return { found: false, error: err.message };
+    }
+  }
+
+  // ── PASSO 1: ESCOLHA INTELIGENTE DE ELEMENTO SoM (BROWSER-USE) ──────────────
+  async chooseElementForAction({ instruction, elementMap }) {
+    const prompt =
+      `Você é o cérebro autônomo do Asclepio Navegador. O usuário deu a seguinte instrução:\n` +
+      `"${instruction}"\n\n` +
+      `Abaixo está a lista de elementos interativos visíveis na tela numerados por ID:\n` +
+      `${JSON.stringify(elementMap.slice(0, 60), null, 2)}\n\n` +
+      `Qual elemento deve ser acionado para cumprir o objetivo?\n` +
+      `Responda ESTRITAMENTE em formato JSON:\n` +
+      `{"id": 5, "action": "click", "value": null, "reason": "Botão de pesquisa"}\n` +
+      `ou se for para digitar:\n` +
+      `{"id": 2, "action": "type", "value": "texto a digitar", "reason": "Campo de busca"}\n` +
+      `Se nenhum elemento corresponder, responda: {"id": null, "reason": "Nenhum elemento adequado"}.\n` +
+      `Apenas JSON, sem comentários.`;
+
+    try {
+      const result = await this.ask({ prompt, context: null });
+      const rawText = (typeof result === 'object' && result.text) ? result.text : String(result);
+      const cleanJson = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+      const match = cleanJson.match(/\{[\s\S]*?\}/);
+      if (match) {
+        return JSON.parse(match[0]);
+      }
+      return { id: null, reason: 'Não foi possível interpretar JSON' };
+    } catch (err) {
+      console.error('[AiRouter] Erro ao escolher elemento SoM:', err.message);
+      return { id: null, reason: err.message };
+    }
+  }
+
+  // ── PASSO 2: EXTRAÇÃO ESTRUTURADA DE DADOS (STAGEHAND EXTRACT) ──────────────
+  async extractStructuredData({ instruction, pageText }) {
+    const prompt =
+      `Extraia os dados solicitados desta página web de forma limpa, precisa e bem formatada:\n` +
+      `Instrução: "${instruction || 'Extraia os dados mais relevantes em tópicos e tabela'}"\n\n` +
+      `Texto da Página:\n${(pageText || '').slice(0, 5000)}\n\n` +
+      `Apresente a resposta com tabelas em Markdown e tópicos executivos claros.`;
+
+    return await this.ask({ prompt, context: null });
+  }
+
+  // ── PASSO 2: OBSERVAÇÃO INTELIGENTE DE AÇÕES DISPONÍVEIS (STAGEHAND OBSERVE) ──
+  async observePageActions({ pageTitle, pageUrl, elementMap }) {
+    const prompt =
+      `Você é o observador autônomo do Asclepio Navegador. Analise a página atual:\n` +
+      `• Título: ${pageTitle}\n` +
+      `• URL: ${pageUrl}\n` +
+      `• Elementos interativos detectados:\n${JSON.stringify((elementMap || []).slice(0, 25))}\n\n` +
+      `Diga ao usuário em 3 a 5 tópicos diretos e objetivos o que você (Asclepio AI) pode fazer nesta página agora.\n` +
+      `Exemplo:\n` +
+      `• Posso fazer login preenchendo seus dados\n` +
+      `• Posso pesquisar perfis de empresas\n` +
+      `• Posso extrair as vagas listadas em uma tabela`;
+
+    return await this.ask({ prompt, context: null });
+  }
 }
 
 module.exports = new AiRouter();
+

@@ -2,6 +2,8 @@ const { app, BrowserWindow, ipcMain, shell, session } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
+const { ElectronBlocker } = require('@cliqz/adblocker-electron');
+const fetch = require('cross-fetch');
 
 const logFile = path.join(__dirname, 'asclepio_debug.log');
 function log(msg) {
@@ -127,6 +129,19 @@ app.whenReady().then(() => {
     callback({ responseHeaders: headers });
   });
 
+  // ── PASSO 5: ADBLOCKER NATIVO NO NÍVEL DE REDE (Engine Brave / Ghostery) ──
+  try {
+    ElectronBlocker.fromPrebuiltAdsAndTracking(fetch).then((blocker) => {
+      blocker.enableBlockingInSession(defaultSess);
+      blocker.enableBlockingInSession(persistSess);
+      log('[Asclepio Main] Adblocker nativo ativado com sucesso em todas as sessões!');
+    }).catch(err => {
+      log(`[Asclepio Main] Aviso ao baixar listas do adblocker: ${err.message}`);
+    });
+  } catch (err) {
+    log(`[Asclepio Main] Falha no adblocker: ${err.message}`);
+  }
+
   createWindow();
 
   // Focus existing window if launched again (single instance)
@@ -158,12 +173,44 @@ ipcMain.handle('asclepio:get-ai-model-info', async () => {
   return aiRouter.getActiveModelInfo();
 });
 
+// ─── PASSO 3: CAPTURA DE TELA PARA GROUNDING VISUAL MULTIMODAL (OPEN-INTERPRETER) ─
+ipcMain.handle('asclepio:capture-active-view', async () => {
+  if (!mainWindow) return null;
+  try {
+    const image = await mainWindow.capturePage();
+    return image.toJPEG(85).toString('base64');
+  } catch (err) {
+    log(`[Asclepio Main] Erro ao capturar tela: ${err.message}`);
+    return null;
+  }
+});
+
+// ─── PASSO 3: GROUNDING VISUAL MULTIMODAL COM GEMINI 2.5 FLASH ─────────────
+ipcMain.handle('asclepio:locate-visual-coordinates', async (_event, { imageBase64, targetDescription }) => {
+  return await aiRouter.detectCoordinatesFromVision({ imageBase64, targetDescription });
+});
+
+// ─── PASSO 1: DECISÃO INTELIGENTE DE ELEMENTO SoM (BROWSER-USE) ──────────────
+ipcMain.handle('asclepio:choose-element-action', async (_event, { instruction, elementMap }) => {
+  return await aiRouter.chooseElementForAction({ instruction, elementMap });
+});
+
+// ─── PASSO 2: EXTRAÇÃO ESTRUTURADA DE DADOS DA PÁGINA (STAGEHAND EXTRACT) ───
+ipcMain.handle('asclepio:extract-data', async (_event, { instruction, pageText }) => {
+  return await aiRouter.extractStructuredData({ instruction, pageText });
+});
+
+// ─── PASSO 2: OBSERVAÇÃO INTELIGENTE DE AÇÕES DISPONÍVEIS (STAGEHAND OBSERVE) ─
+ipcMain.handle('asclepio:observe-actions', async (_event, { pageTitle, pageUrl, elementMap }) => {
+  return await aiRouter.observePageActions({ pageTitle, pageUrl, elementMap });
+});
+
 // ─── IPC: HOST STATE (mirrors Polar's host.getState) ─────────────────────────
 ipcMain.handle('host:getState', async () => ({
-  version: '1.0.0',
+  version: '2.0.0',
   appName: 'Asclepio',
   platform: process.platform,
-  aiProvider: 'Antigravity Subscription',
+  aiProvider: 'Gemini 2.5 Flash + Multi-Agent Fallback',
   aiStatus: 'ready'
 }));
 
@@ -171,3 +218,4 @@ ipcMain.handle('host:getState', async () => ({
 ipcMain.on('host:openExternalUrl', (_event, url) => {
   shell.openExternal(url);
 });
+

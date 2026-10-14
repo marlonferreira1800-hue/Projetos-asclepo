@@ -834,6 +834,337 @@ class BrowserController {
   wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 🚀 INOVAÇÕES DOS 4 GIGANTES OPEN SOURCE (Browser-Use, Stagehand, Open-Interpreter, AutoGen)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // ── PASSO 1: SET-OF-MARKS (SoM) DO BROWSER-USE ────────────────────────────
+  async highlightElementsAndGetMap() {
+    const wv = this.getWebview();
+    if (!wv) return [];
+
+    try {
+      return await wv.executeJavaScript(`
+        (() => {
+          // Remove crachás anteriores se existirem
+          document.querySelectorAll('.asclepio-som-badge').forEach(e => e.remove());
+
+          const interactables = Array.from(document.querySelectorAll(
+            'button, a, input, select, textarea, [role="button"], [role="link"], [role="tab"], [role="menuitem"], [tabindex="0"]'
+          )).filter(el => {
+            const rect = el.getBoundingClientRect();
+            const style = window.getComputedStyle(el);
+            return (
+              rect.width > 8 &&
+              rect.height > 8 &&
+              style.visibility !== 'hidden' &&
+              style.display !== 'none' &&
+              style.opacity !== '0' &&
+              rect.top < window.innerHeight &&
+              rect.bottom > 0
+            );
+          });
+
+          const elementMap = [];
+          interactables.slice(0, 60).forEach((el, index) => {
+            const id = index + 1;
+            el.setAttribute('data-asclepio-id', id);
+
+            const badge = document.createElement('div');
+            badge.className = 'asclepio-som-badge';
+            badge.innerText = id;
+            badge.style.position = 'absolute';
+            badge.style.background = '#01BAEF';
+            badge.style.color = '#FFFFFF';
+            badge.style.fontSize = '11px';
+            badge.style.fontWeight = '700';
+            badge.style.fontFamily = 'monospace, sans-serif';
+            badge.style.padding = '1px 5px';
+            badge.style.borderRadius = '4px';
+            badge.style.boxShadow = '0 2px 8px rgba(1, 186, 239, 0.45)';
+            badge.style.zIndex = '2147483647';
+            badge.style.pointerEvents = 'none';
+            badge.style.lineHeight = '14px';
+
+            const rect = el.getBoundingClientRect();
+            badge.style.top = (rect.top + window.scrollY) + 'px';
+            badge.style.left = (rect.left + window.scrollX) + 'px';
+            document.body.appendChild(badge);
+
+            elementMap.push({
+              id: id,
+              tag: el.tagName.toLowerCase(),
+              type: el.type || null,
+              text: (el.innerText || el.placeholder || el.getAttribute('aria-label') || el.value || el.title || '').slice(0, 70).trim(),
+              role: el.getAttribute('role') || null
+            });
+          });
+
+          return elementMap;
+        })();
+      `);
+    } catch (e) {
+      console.error('[BrowserController] Erro ao indexar elementos SoM:', e);
+      return [];
+    }
+  }
+
+  async clearBadges() {
+    const wv = this.getWebview();
+    if (!wv) return;
+    try {
+      await wv.executeJavaScript(`
+        (() => {
+          document.querySelectorAll('.asclepio-som-badge').forEach(e => e.remove());
+        })();
+      `);
+    } catch (e) {}
+  }
+
+  async clickElementById(id) {
+    const wv = this.getWebview();
+    if (!wv) return { success: false };
+
+    this.startAgentAura(`🖱️ Clicando no elemento [${id}]…`);
+    try {
+      const res = await wv.executeJavaScript(`
+        (() => {
+          const el = document.querySelector('[data-asclepio-id="${id}"]');
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.focus();
+
+            // Efeito visual ripple de clique
+            const ripple = document.createElement('div');
+            ripple.style.position = 'absolute';
+            ripple.style.width = '30px';
+            ripple.style.height = '30px';
+            ripple.style.borderRadius = '50%';
+            ripple.style.border = '2.5px solid #01BAEF';
+            ripple.style.transform = 'translate(-50%, -50%) scale(0.5)';
+            ripple.style.transition = 'all 0.5s ease-out';
+            ripple.style.pointerEvents = 'none';
+            ripple.style.zIndex = '2147483647';
+
+            const r = el.getBoundingClientRect();
+            ripple.style.left = (r.left + r.width / 2 + window.scrollX) + 'px';
+            ripple.style.top = (r.top + r.height / 2 + window.scrollY) + 'px';
+            document.body.appendChild(ripple);
+
+            setTimeout(() => {
+              ripple.style.transform = 'translate(-50%, -50%) scale(2.2)';
+              ripple.style.opacity = '0';
+              setTimeout(() => ripple.remove(), 550);
+            }, 20);
+
+            el.click();
+            return {
+              success: true,
+              text: (el.innerText || el.getAttribute('aria-label') || el.value || '').trim()
+            };
+          }
+          return { success: false };
+        })();
+      `);
+      return res;
+    } finally {
+      this.stopAgentAura();
+    }
+  }
+
+  async typeElementById(id, text) {
+    const wv = this.getWebview();
+    if (!wv) return { success: false };
+
+    this.startAgentAura(`⌨️ Digitando "${text.slice(0, 20)}" em [${id}]…`);
+    try {
+      return await wv.executeJavaScript(`
+        (() => {
+          const el = document.querySelector('[data-asclepio-id="${id}"]');
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.focus();
+            el.value = ${JSON.stringify(text)};
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+            return { success: true };
+          }
+          return { success: false };
+        })();
+      `);
+    } finally {
+      this.stopAgentAura();
+    }
+  }
+
+  // ── PASSO 3: GROUNDING VISUAL MULTIMODAL (OPEN-INTERPRETER VISION) ────────
+  async visualClick(targetDescription) {
+    const wv = this.getWebview();
+    if (!wv || !window.__asclepioHost || !window.__asclepioHost.captureActiveView) {
+      return { success: false, reason: 'Ambiente ou host indisponível' };
+    }
+
+    this.startAgentAura(`👁️ Localizando "${targetDescription}" via Visão Computacional…`);
+    try {
+      const base64 = await window.__asclepioHost.captureActiveView();
+      if (!base64) {
+        return { success: false, reason: 'Falha ao capturar tela' };
+      }
+
+      const visionResult = await window.__asclepioHost.locateVisualCoordinates({
+        imageBase64: base64,
+        targetDescription
+      });
+
+      if (visionResult && visionResult.found && visionResult.xPercent && visionResult.yPercent) {
+        const wvRect = wv.getBoundingClientRect();
+        const targetX = Math.round((visionResult.xPercent / 100) * wvRect.width);
+        const targetY = Math.round((visionResult.yPercent / 100) * wvRect.height);
+
+        // Move cursor virtual para o ponto de visão
+        if (window.agentCursor) {
+          const screenX = wvRect.left + targetX;
+          const screenY = wvRect.top + targetY;
+          await window.agentCursor.moveTo(screenX, screenY, 400, `👁️ Clicando em ${targetDescription}`);
+          window.agentCursor.spawnRipple(screenX, screenY);
+        }
+
+        // Envia clique nativo para o webview
+        wv.sendInputEvent({ type: 'mouseDown', x: targetX, y: targetY, button: 'left', clickCount: 1 });
+        await this.wait(60);
+        wv.sendInputEvent({ type: 'mouseUp', x: targetX, y: targetY, button: 'left', clickCount: 1 });
+
+        return { success: true, targetX, targetY, confidence: visionResult.confidence };
+      }
+
+      return { success: false, reason: 'Elemento não localizado pela visão' };
+    } catch (e) {
+      console.error('[BrowserController] Erro no visualClick:', e);
+      return { success: false, reason: e.message };
+    } finally {
+      this.stopAgentAura();
+    }
+  }
+
+  // ── PASSO 2: AS 3 PRIMITIVAS DECLARATIVAS (STAGEHAND) ─────────────────────
+  // 2.1 act(instruction) - Executa ações declarativas com SoM + Fallback Vision
+  async act(instruction) {
+    this.startAgentAura(`⚡ Asclepio processando: "${instruction}"…`);
+    try {
+      // 1. Tenta via Set-of-Marks do Browser-Use
+      const elementMap = await this.highlightElementsAndGetMap();
+      if (elementMap && elementMap.length > 0 && window.__asclepioHost?.chooseElementAction) {
+        const decision = await window.__asclepioHost.chooseElementAction({
+          instruction,
+          elementMap
+        });
+
+        if (decision && decision.id) {
+          let execResult;
+          if (decision.action === 'type' && decision.value) {
+            execResult = await this.typeElementById(decision.id, decision.value);
+          } else {
+            execResult = await this.clickElementById(decision.id);
+          }
+
+          setTimeout(() => this.clearBadges(), 1500);
+          if (execResult && execResult.success) {
+            return {
+              success: true,
+              method: 'set-of-marks',
+              reason: decision.reason,
+              elementId: decision.id
+            };
+          }
+        }
+      }
+
+      // 2. Fallback: Se SoM não achou ou falhou, tenta Grounding Visual por Coordenadas
+      const visionResult = await this.visualClick(instruction);
+      if (visionResult && visionResult.success) {
+        setTimeout(() => this.clearBadges(), 1200);
+        return {
+          success: true,
+          method: 'multimodal-vision',
+          details: visionResult
+        };
+      }
+
+      // 3. Fallback: Tenta busca textual simples via smartClick
+      const smartResult = await this.smartClick(instruction);
+      setTimeout(() => this.clearBadges(), 1200);
+      return smartResult;
+    } catch (err) {
+      setTimeout(() => this.clearBadges(), 1000);
+      return { success: false, error: err.message };
+    } finally {
+      this.stopAgentAura();
+    }
+  }
+
+  // 2.2 extract(instruction) - Extração declarativa de dados estruturados
+  async extract(instruction = 'Extrair tópicos principais e dados') {
+    this.startAgentAura(`📊 Extraindo dados da página…`);
+    try {
+      const inspect = await this.inspectInteractiveElements();
+      const pageText = inspect ? (inspect.headings.join('\n') + '\n' + inspect.paragraphs.slice(0, 15).join('\n')) : '';
+
+      if (window.__asclepioHost?.extractData) {
+        return await window.__asclepioHost.extractData({
+          instruction,
+          pageText
+        });
+      }
+      return { success: false, text: 'Host de extração indisponível.' };
+    } finally {
+      this.stopAgentAura();
+    }
+  }
+
+  // 2.3 observe() - Responde em tempo real o que é possível fazer nesta página
+  async observe() {
+    this.startAgentAura(`🔍 Observando possíveis ações na página…`);
+    try {
+      const elementMap = await this.highlightElementsAndGetMap();
+      const wv = this.getWebview();
+      const pageTitle = wv ? wv.getTitle() : 'Página Ativa';
+      const pageUrl = wv ? wv.getURL() : '';
+
+      setTimeout(() => this.clearBadges(), 3500);
+
+      if (window.__asclepioHost?.observeActions) {
+        return await window.__asclepioHost.observeActions({
+          pageTitle,
+          pageUrl,
+          elementMap
+        });
+      }
+      return { success: false, text: 'Host de observação indisponível.' };
+    } finally {
+      this.stopAgentAura();
+    }
+  }
+
+  // ── PASSO 4: LOOP DE VERIFICAÇÃO DO CRÍTICO (AUTOGEN) ──────────────────────
+  async executeWithVerification(actionFn, checkConditionFn, maxRetries = 2) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      await actionFn();
+      await this.wait(1200); // Aguarda renderização da página
+
+      if (typeof checkConditionFn === 'function') {
+        const success = await checkConditionFn();
+        if (success) {
+          return { status: 'success', attempt };
+        }
+        console.warn(`[BrowserController] Tentativa ${attempt} falhou na verificação. Retentando…`);
+      } else {
+        return { status: 'success', attempt };
+      }
+    }
+    return { status: 'failed' };
+  }
 }
 
 window.browserController = new BrowserController();
+

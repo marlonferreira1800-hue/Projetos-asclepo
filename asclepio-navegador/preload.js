@@ -24,5 +24,13 @@ contextBridge.exposeInMainWorld('__asclepioHost', {
   // ── Motor de IA com Fallback Simultâneo (Gemini 2.5 Flash, OpenAI, OpenRouter, Antigravity) ──
   askAi: (data) => ipcRenderer.invoke('asclepio:ask-antigravity', data),
   askAntigravity: (data) => ipcRenderer.invoke('asclepio:ask-antigravity', data),
-  getAiModelInfo: () => ipcRenderer.invoke('asclepio:get-ai-model-info')
+  getAiModelInfo: () => ipcRenderer.invoke('asclepio:get-ai-model-info'),
+
+  // ── Inovações dos 4 Gigantes (Browser-Use SoM, Stagehand, Open-Interpreter Vision) ──
+  captureActiveView: () => ipcRenderer.invoke('asclepio:capture-active-view'),
+  locateVisualCoordinates: (data) => ipcRenderer.invoke('asclepio:locate-visual-coordinates', data),
+  chooseElementAction: (data) => ipcRenderer.invoke('asclepio:choose-element-action', data),
+  extractData: (data) => ipcRenderer.invoke('asclepio:extract-data', data),
+  observeActions: (data) => ipcRenderer.invoke('asclepio:observe-actions', data)
 });
+
