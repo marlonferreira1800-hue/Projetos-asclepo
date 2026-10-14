@@ -194,33 +194,39 @@ class BrowserController {
     const offset = this.getWebviewOffsets();
     let targetCoords = { x: 380, y: 260 };
 
-    try {
-      const coords = await wv.executeJavaScript(`
-        (() => {
-          const videoSelectors = [
-            'ytd-video-renderer #video-title',
-            'ytd-video-renderer a#thumbnail',
-            'a#video-title-link',
-            '#contents ytd-video-renderer a#video-title',
-            'ytd-item-section-renderer ytd-video-renderer a',
-            'a#video-title'
-          ];
-          for (const sel of videoSelectors) {
-            const el = document.querySelector(sel);
-            if (el) {
-              const r = el.getBoundingClientRect();
-              if (r.width > 20 && r.height > 20 && r.top >= 0) {
-                return { x: r.left + r.width / 2, y: r.top + r.height / 2, found: true };
+    // Aguarda o resultado renderizar no DOM (até 10 tentativas / 3.5s)
+    for (let attempt = 0; attempt < 10; attempt++) {
+      try {
+        const coords = await wv.executeJavaScript(`
+          (() => {
+            const videoSelectors = [
+              'ytd-video-renderer #video-title',
+              'ytd-video-renderer a#thumbnail',
+              'a#video-title-link',
+              '#contents ytd-video-renderer a#video-title',
+              'ytd-item-section-renderer ytd-video-renderer a',
+              'a#video-title',
+              'ytd-rich-item-renderer #video-title'
+            ];
+            for (const sel of videoSelectors) {
+              const el = document.querySelector(sel);
+              if (el && el.offsetParent !== null) {
+                const r = el.getBoundingClientRect();
+                if (r.width > 20 && r.height > 15) {
+                  return { x: r.left + r.width / 2, y: r.top + r.height / 2, found: true };
+                }
               }
             }
-          }
-          return { x: 380, y: 260, found: false };
-        })();
-      `);
-      if (coords && coords.found) {
-        targetCoords = coords;
-      }
-    } catch (e) {}
+            return { x: 380, y: 260, found: false };
+          })();
+        `);
+        if (coords && coords.found) {
+          targetCoords = coords;
+          break;
+        }
+      } catch (e) {}
+      await this.wait(350);
+    }
 
     const screenX = offset.left + targetCoords.x;
     const screenY = offset.top + targetCoords.y;
@@ -238,7 +244,8 @@ class BrowserController {
             'a#video-title-link',
             '#contents ytd-video-renderer a#video-title',
             'ytd-item-section-renderer ytd-video-renderer a',
-            'a#video-title'
+            'a#video-title',
+            'ytd-rich-item-renderer #video-title'
           ];
           for (const sel of videoSelectors) {
             const el = document.querySelector(sel);
@@ -251,7 +258,7 @@ class BrowserController {
                   if (!window.location.href.includes('/watch')) {
                     window.location.href = link.href;
                   }
-                }, 300);
+                }, 200);
               } else {
                 el.click();
               }

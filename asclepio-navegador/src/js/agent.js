@@ -234,15 +234,13 @@ class AsclepioAgent {
     if (!query) return;
     this.lastMentionedSong = query;
     const msgId = existingMsgId || this.appendLoadingMessage();
-    this.updateStepMessage(msgId, `🌐 [Passo 1/3] Acessando YouTube para buscar **"${query}"**…`);
+    this.updateStepMessage(msgId, `🌐 [Passo 1/2] Buscando **"${query}"** no YouTube…`);
 
     if (window.browserController) {
-      await window.browserController.navigate('https://www.youtube.com');
-      this.updateStepMessage(msgId, `⌨️ [Passo 2/3] Digitando **"${query}"** e buscando…`);
+      const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
+      await window.browserController.navigate(searchUrl);
+      this.updateStepMessage(msgId, `▶️ [Passo 2/2] Selecionando e reproduzindo o vídeo…`);
       await window.browserController.wait(1800);
-      await window.browserController.type('input#search, textarea.ytSearchboxComponentInput, input[name="search_query"]', query, true);
-      this.updateStepMessage(msgId, `🖱️ [Passo 3/3] Selecionando e reproduzindo o vídeo…`);
-      await window.browserController.wait(2200);
       await window.browserController.clickFirstVideo();
       this.replaceLoadingMessage(msgId, `🎬 **Vídeo iniciado no YouTube!**\n\n• Pesquisa: *${query}*\n• O vídeo já está em reprodução na sua tela.`);
     } else {
@@ -450,9 +448,9 @@ class AsclepioAgent {
     }
 
 
-    // 4. Intenção Direta de Tocar Música / Vídeo (mesmo sem falar "YouTube")
-    // Exemplos: "coloque a musica justir bibeber beber", "toca a musica em teus braços", "toca justin", "quero ouvir em teus braços"
-    const musicPlayMatch = lower.match(/(?:toca(?:r)?|coloque|coloca(?:r)?|bota(?:r)?|quero\s+ouvir|ouvir|reproduz(?:ir)?|play)\s+(?:a\s+)?(?:m[uú]sica\s+)?(?:do\s+|da\s+|de\s+)?(.+)/i);
+    // 4. Intenção Direta de Tocar Música / Vídeo (mesmo sem falar "YouTube" ou com erros como "pequsia")
+    // Exemplos: "coloque a musica justir bibeber beber", "pequsia a musica em teus braços", "toca a musica em teus braços", "toca justin", "quero ouvir em teus braços"
+    const musicPlayMatch = lower.match(/(?:toca(?:r)?|coloque|coloca(?:r)?|bota(?:r)?|quero\s+ouvir|ouvir|reproduz(?:ir)?|play|pe[sq][qu]uis[ae]?(?:r)?|procur[ae](?:r)?|busc[ae](?:r)?)\s+(?:a\s+)?(?:m[uú]sica\s+)?(?:do\s+|da\s+|de\s+)?(.+)/i);
     if (musicPlayMatch && !lower.includes('google') && !lower.includes('chatgpt')) {
       let songQuery = musicPlayMatch[1]
         .replace(/\s+no\s+(youtube|youtebe|yt)$/i, '')
@@ -472,8 +470,8 @@ class AsclepioAgent {
       }
     }
 
-    // 5. Continuação ou Confirmação de Ação ("sim", "faça por mim", "faz por mim", "tocar", "prossiga")
-    if (/^(sim|pode ser|claro|fa[çc]a por mim|faz por mim|tocar|toca|pode tocar|executa|prossiga|prosseguir|vai)$/i.test(lower)) {
+    // 5. Continuação ou Confirmação de Ação ("sim", "faça por mim", "faz por mim", "tocar", "e toca", "toca", "prossiga")
+    if (/^(sim|pode ser|claro|fa[çc]a por mim|faz por mim|tocar|toca|e toca|pode tocar|executa|prossiga|prosseguir|vai)$/i.test(lower)) {
       if (this.lastMentionedSong) {
         await this.executePlayYouTube(this.lastMentionedSong);
         return;

@@ -34,15 +34,10 @@ if (!gotTheLock) {
 }
 
 
-// ─── OTIMIZAÇÕES DE HARDWARE, GPU E MEMÓRIA V8 (Chrome 134 Engine) ──────────
-app.commandLine.appendSwitch('enable-gpu-rasterization');
-app.commandLine.appendSwitch('enable-zero-copy');
-app.commandLine.appendSwitch('ignore-gpu-blocklist');
-app.commandLine.appendSwitch('enable-features', 'VaapiVideoDecoder,CanvasOopRasterization,SmoothScrolling');
+// ─── OTIMIZAÇÕES SEGURAS DE HARDWARE E MEMÓRIA V8 (Windows / Chrome 134 Engine) ───
 app.commandLine.appendSwitch('js-flags', '--max-old-space-size=4096');
 app.commandLine.appendSwitch('enable-fast-unload');
-app.commandLine.appendSwitch('disable-renderer-backgrounding');
-app.commandLine.appendSwitch('disable-backgrounding-occluded-windows');
+app.commandLine.appendSwitch('enable-smooth-scrolling');
 
 const CHROME_UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
