@@ -158,40 +158,29 @@ app.whenReady().then(() => {
     callback(true);
   });
 
-  // ── PASSO 5: ADBLOCKER NATIVO (Focado em filtros de rede, sem cosméticos que quebram o YouTube) ──
+  // ── PASSO 5: ADBLOCKER NATIVO COM CACHE OTIMIZADO ──
   const adblockerCacheFile = path.join(app.getPath('userData'), 'adblocker-cache.bin');
   const enableBlocker = (blocker) => {
-    blocker.enableBlockingInSession(defaultSess);
-    blocker.enableBlockingInSession(persistSess);
-    log('[Asclepio Main] Adblocker nativo ativado com sucesso em todas as sessões!');
+    try {
+      blocker.enableBlockingInSession(defaultSess);
+      blocker.enableBlockingInSession(persistSess);
+      log('[Asclepio Main] Adblocker nativo ativado com sucesso em todas as sessões!');
+    } catch (e) {
+      log(`[Asclepio Main] Erro ao ativar adblocker na sessão: ${e.message}`);
+    }
   };
 
   try {
-    if (fs.existsSync(adblockerCacheFile)) {
-      try {
-        const buffer = fs.readFileSync(adblockerCacheFile);
-        const blocker = ElectronBlocker.deserialize(buffer);
-        enableBlocker(blocker);
-        log('[Asclepio Main] Adblocker carregado instantaneamente do cache em disco (<15ms)!');
-      } catch (cacheErr) {
-        log(`[Asclepio Main] Cache do adblocker corrompido, rebaixando: ${cacheErr.message}`);
-        try { fs.unlinkSync(adblockerCacheFile); } catch (_) {}
-        ElectronBlocker.fromPrebuiltAdsAndTracking(fetch, { loadNetworkFilters: true, loadCosmeticFilters: false }).then((blocker) => {
-          enableBlocker(blocker);
-          try { fs.writeFileSync(adblockerCacheFile, Buffer.from(blocker.serialize())); } catch (_) {}
-        });
-      }
-    } else {
-      ElectronBlocker.fromPrebuiltAdsAndTracking(fetch, { loadNetworkFilters: true, loadCosmeticFilters: false }).then((blocker) => {
-        enableBlocker(blocker);
-        try {
-          fs.writeFileSync(adblockerCacheFile, Buffer.from(blocker.serialize()));
-          log('[Asclepio Main] Cache do adblocker salvo com sucesso no disco para próximas aberturas!');
-        } catch (_) {}
-      }).catch(err => {
-        log(`[Asclepio Main] Aviso ao baixar listas do adblocker: ${err.message}`);
-      });
-    }
+    const cache = {
+      path: adblockerCacheFile,
+      read: (p) => fs.promises.readFile(p),
+      write: (p, b) => fs.promises.writeFile(p, b)
+    };
+    ElectronBlocker.fromPrebuiltAdsAndTracking(fetch, cache).then((blocker) => {
+      enableBlocker(blocker);
+    }).catch(err => {
+      log(`[Asclepio Main] Aviso ao carregar adblocker: ${err.message}`);
+    });
   } catch (err) {
     log(`[Asclepio Main] Falha no adblocker: ${err.message}`);
   }
