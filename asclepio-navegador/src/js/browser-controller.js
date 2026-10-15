@@ -188,14 +188,16 @@ class BrowserController {
   // 3. Tocar o primeiro vídeo nos resultados
   async clickFirstVideo() {
     const wv = this.getWebview();
-    if (!wv) return false;
+    if (!wv) return { success: false, reason: 'Webview indisponível' };
 
     this.startAgentAura(`▶️ Selecionando o primeiro resultado…`);
     const offset = this.getWebviewOffsets();
     let targetCoords = { x: 380, y: 260 };
+    let foundVideo = false;
+    let videoUrl = null;
 
-    // Aguarda o resultado renderizar no DOM (até 10 tentativas / 3.5s)
-    for (let attempt = 0; attempt < 10; attempt++) {
+    // Aguarda o resultado renderizar no DOM (até 15 tentativas / 5.5s)
+    for (let attempt = 0; attempt < 15; attempt++) {
       try {
         const coords = await wv.executeJavaScript(`
           (() => {
@@ -213,7 +215,14 @@ class BrowserController {
               if (el && el.offsetParent !== null) {
                 const r = el.getBoundingClientRect();
                 if (r.width > 20 && r.height > 15) {
-                  return { x: r.left + r.width / 2, y: r.top + r.height / 2, found: true };
+                  const link = el.closest('a') || (el.tagName.toLowerCase() === 'a' ? el : null);
+                  return { 
+                    x: r.left + r.width / 2, 
+                    y: r.top + r.height / 2, 
+                    found: true,
+                    href: link ? link.href : null,
+                    title: el.innerText ? el.innerText.trim() : ''
+                  };
                 }
               }
             }
@@ -222,6 +231,8 @@ class BrowserController {
         `);
         if (coords && coords.found) {
           targetCoords = coords;
+          foundVideo = true;
+          videoUrl = coords.href;
           break;
         }
       } catch (e) {}
@@ -235,8 +246,9 @@ class BrowserController {
       await window.agentCursor.clickAt(screenX, screenY, "▶️ Tocar primeiro vídeo");
     }
 
+    let clickResult = { success: false };
     try {
-      await wv.executeJavaScript(`
+      clickResult = await wv.executeJavaScript(`
         (() => {
           const videoSelectors = [
             'ytd-video-renderer #video-title',
@@ -258,22 +270,56 @@ class BrowserController {
                   if (!window.location.href.includes('/watch')) {
                     window.location.href = link.href;
                   }
-                }, 200);
+                }, 150);
+                return { success: true, href: link.href };
               } else {
                 el.click();
+                return { success: true };
               }
-              return { success: true };
             }
           }
           return { success: false };
         })();
       `);
-    } catch (e) {}
+    } catch (e) {
+      clickResult = { success: false, error: e.message };
+    }
+
+    // Se o clique falhou ou se temos a URL direta, navega para o vídeo
+    if ((!clickResult || !clickResult.success) && videoUrl && videoUrl.includes('/watch')) {
+      if (window.asclepioBrowser) {
+        window.asclepioBrowser.navigateTo(videoUrl);
+      }
+      clickResult = { success: true, href: videoUrl };
+    }
+
+    // Aguarda carregar a página do vídeo e ativa o player de áudio/vídeo
+    await this.wait(2000);
+    try {
+      await wv.executeJavaScript(`
+        (() => {
+          // Pula anúncio se houver
+          const skipBtn = document.querySelector('.ytp-skip-ad-button, .ytp-ad-skip-button-modern, .ytp-ad-skip-button');
+          if (skipBtn) skipBtn.click();
+
+          // Garante que o player desmute e toque
+          const video = document.querySelector('video');
+          if (video) {
+            video.muted = false;
+            video.volume = 1.0;
+            if (video.paused) {
+              video.play().catch(() => {});
+            }
+          }
+        })();
+      `);
+    } catch (_) {}
 
     if (window.agentCursor) {
       window.agentCursor.hide();
     }
     this.stopAgentAura();
+    return clickResult || { success: foundVideo };
   }
 
   // 4. Clicar em qualquer elemento

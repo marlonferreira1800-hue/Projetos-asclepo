@@ -13,11 +13,15 @@ function writeLog(line) {
 
 fs.writeFileSync(resultsTextLog, `=== INICIANDO BATERIA DE 5 TESTES DO ASCLEPIO ===\nData: ${new Date().toISOString()}\n\n`);
 
-// Flags de rede e estabilidade (mesmas do main.js)
+// Flags de rede, mídia e estabilidade (mesmas do main.js)
+app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
+app.commandLine.appendSwitch('use-fake-ui-for-media-stream');
+app.commandLine.appendSwitch('enable-features', 'AudioServiceOutOfProcess');
+app.commandLine.appendSwitch('enable-speech-dispatcher');
 app.commandLine.appendSwitch('disable-quic');
 app.commandLine.appendSwitch('no-proxy-server');
 app.commandLine.appendSwitch('ignore-certificate-errors');
-app.commandLine.appendSwitch('disable-features', 'CertRevocationChecking,CalculateNativeWinOcclusion');
+app.commandLine.appendSwitch('disable-features', 'CertRevocationChecking,CalculateNativeWinOcclusion,PreloadMediaEngagementData');
 app.commandLine.appendSwitch('disable-renderer-backgrounding');
 app.commandLine.appendSwitch('disable-backgrounding-occluded-windows');
 

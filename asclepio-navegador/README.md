@@ -19,18 +19,26 @@
    - Paleta de cores oficial: Canvas Porcelana (`#F8F6F5`), Superfícies Pure White (`#FFFFFF`), Linhas de Borda (`#E8E8E6`), Texto Dark Slate (`#252423`) e Tipografia Manrope.
    - Botão de alternância **Sol / Lua** no menu lateral para trocar dinamicamente entre Polar White e Dark Mode, com persistência no `localStorage`.
 
-4. **Roteamento Inteligente com Fallback Simultâneo:**
-   - **Modelo Primário:** Google Gemini 2.5 Flash (ultra-rápido, cota ampla).
-   - **Fallback 1:** OpenAI GPT-4o-mini (acionado instantaneamente se o Gemini esgotar tokens).
-   - **Fallback 2:** OpenRouter (acesso a modelos Claude, Mistral, Llama).
-   - **Fallback 3:** Motor Local Antigravity CLI (`agy`).
+4. **Roteamento Inteligente com Fallback Simultâneo (<1s de Latência):**
+   - **Modelo Primário Ativo:** OpenAI GPT-4o Mini (estabilidade máxima, tempo de resposta inferior a 1 segundo para comandos de navegação).
+   - **Fallback 1:** OpenRouter GPT-4o Mini (roteamento distribuído multi-provedor).
+   - **Fallback 2:** Google Gemini 2.5 Flash (contexto estendido de 1M tokens).
+   - **Fallback 3:** Motor Local Antigravity CLI (`agy`) offline.
 
-5. **Arsenal de 20 Ações de Navegação e Multimídia:**
-   - Controle total do player de vídeo: `setVolume(0-100)`, `changeVolume(delta)`, `toggleMute()`, `toggleFullscreen()`, `setPlaybackSpeed()`, `seek()`, `skipAd()`.
-   - Gerenciamento de abas e fluxo: `newTab()`, `closeActiveTab()`, `reload()`, `goBack()`, `goForward()`.
-   - Síntese do DOM e extração contextual para raciocínio contínuo da IA.
+5. **Comandos de Voz com Whisper IA & Síntese Falada (TTS):**
+   - **Transcrição de Alta Precisão:** Reconhecimento de voz em tempo real através do OpenAI Whisper (`whisper-1`) em português brasileiro, com fallback para Gemini Multimodal.
+   - **Resposta Falada:** O agente responde falado com voz natural em português sempre que um comando for emitido por áudio.
+   - **Digitação Visual no Prompt:** O comando reconhecido aparece instantaneamente no input antes da execução.
 
-6. **Command Palette (`Ctrl + K`):**
+6. **Arsenal de 20 Ações de Navegação e Multimídia:**
+   - **YouTube Auto-Play & Desmute Inteligente:** Busca direta, clique automático no primeiro resultado com até 15 tentativas dinâmicas, desmute forçado (`muted = false`), ajuste de volume e auto-pular anúncios (`skipAd`).
+   - **Auto-Dismiss de Consentimento:** Fecha e aceita automaticamente janelas de cookies do Google/YouTube ao carregar páginas.
+   - **Adblocker Nativo Otimizado:** Bloqueio de anúncios em rede (`NetworkFilters`) preservando compatibilidade com o TrustedScript CSP do YouTube.
+   - **Controle Total:** `setVolume(0-100)`, `changeVolume(delta)`, `toggleMute()`, `toggleFullscreen()`, `setPlaybackSpeed()`, `seek()`, `skipAd()`.
+   - **Gerenciamento de Abas:** `newTab()`, `closeActiveTab()`, `reload()`, `goBack()`, `goForward()`.
+   - **Síntese do DOM:** Extração contextual da página para raciocínio contínuo da IA.
+
+7. **Command Palette (`Ctrl + K`):**
    - Barra estilo Spotlight para comandos rápidos, busca, navegação e comandos diretos para o agente.
 
 ---

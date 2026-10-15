@@ -41,7 +41,11 @@ app.commandLine.appendSwitch('enable-smooth-scrolling');
 app.commandLine.appendSwitch('disable-quic');
 app.commandLine.appendSwitch('no-proxy-server');
 app.commandLine.appendSwitch('ignore-certificate-errors');
-app.commandLine.appendSwitch('disable-features', 'CertRevocationChecking,CalculateNativeWinOcclusion');
+app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
+app.commandLine.appendSwitch('use-fake-ui-for-media-stream');
+app.commandLine.appendSwitch('enable-features', 'AudioServiceOutOfProcess');
+app.commandLine.appendSwitch('enable-speech-dispatcher');
+app.commandLine.appendSwitch('disable-features', 'CertRevocationChecking,CalculateNativeWinOcclusion,PreloadMediaEngagementData');
 app.commandLine.appendSwitch('disable-renderer-backgrounding');
 app.commandLine.appendSwitch('disable-backgrounding-occluded-windows');
 
@@ -149,6 +153,9 @@ app.whenReady().then(() => {
     const allowed = ['media', 'microphone', 'audio-capture', 'geolocation', 'notifications'];
     callback(allowed.includes(permission) || true);
   });
+  defaultSess.setPermissionCheckHandler((_webContents, permission) => {
+    return true;
+  });
 
   // ── Named persist session for tabs (cookies, login state survives restart) ──
   const persistSess = session.fromPartition('persist:asclepio');
@@ -157,14 +164,20 @@ app.whenReady().then(() => {
   persistSess.setPermissionRequestHandler((_webContents, permission, callback) => {
     callback(true);
   });
+  persistSess.setPermissionCheckHandler((_webContents, permission) => {
+    return true;
+  });
 
   // ── PASSO 5: ADBLOCKER NATIVO COM CACHE OTIMIZADO ──
   const adblockerCacheFile = path.join(app.getPath('userData'), 'adblocker-cache.bin');
   const enableBlocker = (blocker) => {
     try {
+      // Desativa injeção de scriptlets cosméticos que quebram o YouTube com TrustedScript CSP
+      blocker.config.loadCosmeticFilters = false;
+      blocker.config.loadNetworkFilters = true;
       blocker.enableBlockingInSession(defaultSess);
       blocker.enableBlockingInSession(persistSess);
-      log('[Asclepio Main] Adblocker nativo ativado com sucesso em todas as sessões!');
+      log('[Asclepio Main] Adblocker nativo otimizado (Network Filters) ativado com sucesso em todas as sessões!');
     } catch (e) {
       log(`[Asclepio Main] Erro ao ativar adblocker na sessão: ${e.message}`);
     }
@@ -254,6 +267,11 @@ ipcMain.handle('asclepio:extract-data', async (_event, { instruction, pageText }
 // ─── PASSO 2: OBSERVAÇÃO INTELIGENTE DE AÇÕES DISPONÍVEIS (STAGEHAND OBSERVE) ─
 ipcMain.handle('asclepio:observe-actions', async (_event, { pageTitle, pageUrl, elementMap }) => {
   return await aiRouter.observePageActions({ pageTitle, pageUrl, elementMap });
+});
+
+// ─── PASSO 4: TRANSCRIÇÃO DE VOZ (WHISPER / GEMINI MULTIMODAL) ───────────────
+ipcMain.handle('asclepio:transcribe-audio', async (_event, data) => {
+  return await aiRouter.transcribeAudio(data);
 });
 
 // ─── IPC: HOST STATE (mirrors Polar's host.getState) ─────────────────────────

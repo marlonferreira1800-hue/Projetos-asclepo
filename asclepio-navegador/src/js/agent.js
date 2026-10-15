@@ -16,6 +16,13 @@ class AsclepioAgent {
     this.isRecording = false;
     this.mediaStream = null;
     this.mediaRecorder = null;
+    this.recordedMimeType = null;
+    this.audioChunks = [];
+    this.audioContext = null;
+    this.analyser = null;
+    this.voiceCheckInterval = null;
+    this.speechDetected = false;
+    this.wasVoiceCommand = false;
     this.recognition = null;
     this.lastMentionedSong = null;
 
@@ -32,7 +39,7 @@ class AsclepioAgent {
     }
 
     this.appendSystemMessage(
-      "Olá Marlon! Eu sou o **Asclepio AI**, seu navegador autônomo com **Gemini 2.5 Flash** e **Fallback Simultâneo de Tokens**.\n\n" +
+      "Olá Marlon! Eu sou o **Asclepio AI**, seu navegador autônomo com **Gemini 2.5 Flash**, **OpenAI Whisper** e **Fallback Simultâneo de Tokens**.\n\n" +
       "Se a cota de algum modelo esgotar, eu alterno simultaneamente sem interromper a navegação! Você pode pedir para **abrir sites, pesquisar no YouTube ou Google** usando texto ou o **microfone** abaixo."
     );
   }
@@ -40,30 +47,35 @@ class AsclepioAgent {
   initSpeechRecognition() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
-      this.recognition = new SpeechRecognition();
-      this.recognition.lang = 'pt-BR';
-      this.recognition.continuous = true;
-      this.recognition.interimResults = true;
+      try {
+        this.recognition = new SpeechRecognition();
+        this.recognition.lang = 'pt-BR';
+        this.recognition.continuous = true;
+        this.recognition.interimResults = true;
 
-      this.recognition.onresult = (event) => {
-        let transcript = '';
-        for (let i = 0; i < event.results.length; ++i) {
-          transcript += event.results[i][0].transcript;
-        }
-        this.promptInput.value = transcript;
-      };
+        this.recognition.onresult = (event) => {
+          let transcript = '';
+          for (let i = 0; i < event.results.length; ++i) {
+            transcript += event.results[i][0].transcript;
+          }
+          if (transcript.trim()) {
+            this.promptInput.value = transcript;
+            this.speechDetected = true;
+            this.voiceStatusText.textContent = `🎙️ Digitando: "${transcript}"`;
+          }
+        };
 
-      this.recognition.onerror = (event) => {
-        if (event.error !== 'no-speech') {
-          this.stopRecording();
-        }
-      };
+        this.recognition.onerror = (event) => {
+          // Erro de rede ou chave no WebSpeech não deve cancelar a gravação física com Whisper
+          console.log('[Agent] SpeechRecognition aviso:', event.error);
+        };
 
-      this.recognition.onend = () => {
-        if (this.isRecording) {
-          this.stopRecording();
-        }
-      };
+        this.recognition.onend = () => {
+          // Mantém controle do microfone com MediaRecorder
+        };
+      } catch (e) {
+        console.warn('[Agent] WebSpeech API indisponível:', e);
+      }
     }
   }
 
@@ -158,72 +170,274 @@ class AsclepioAgent {
 
   async startRecording() {
     try {
+      this.openPanel();
       this.isRecording = true;
+      this.speechDetected = false;
+      this.audioChunks = [];
       this.btnMic.classList.add('recording');
       this.btnMic.setAttribute('aria-pressed', 'true');
       this.voiceStatusBar.classList.add('active');
-      this.voiceStatusText.textContent = "Ouvindo você… Fale seu comando";
+      this.voiceStatusText.textContent = "🎙️ Ouvindo você… Fale seu comando";
 
-      this.mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      this.mediaRecorder = new MediaRecorder(this.mediaStream);
-      this.mediaRecorder.start();
+      // 1. Captura de áudio nativa do microfone com cancelamento de eco
+      this.mediaStream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
+      });
 
+      // 2. Detecção de Voz e Silêncio Automático (VAD via Web Audio API)
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) {
+          this.audioContext = new AudioCtx();
+          const source = this.audioContext.createMediaStreamSource(this.mediaStream);
+          this.analyser = this.audioContext.createAnalyser();
+          this.analyser.fftSize = 256;
+          source.connect(this.analyser);
+
+          const dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+          let sampleCount = 0;
+          let baselineNoise = 8;
+          let silenceCounter = 0;
+          let ticks = 0;
+          const maxTicks = 25; // 25 * 200ms = 5.0 segundos máximo de segurança
+
+          this.voiceCheckInterval = setInterval(() => {
+            if (!this.isRecording || !this.analyser) return;
+            ticks++;
+            this.analyser.getByteFrequencyData(dataArray);
+            let sum = 0;
+            for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+            const avg = sum / dataArray.length;
+
+            // Calibra piso de ruído do fone nos primeiros 400ms
+            if (sampleCount < 2) {
+              baselineNoise = Math.max(baselineNoise, avg);
+              sampleCount++;
+              return;
+            }
+
+            const speechThreshold = Math.max(baselineNoise + 5, 10);
+            const volumeBar = avg >= speechThreshold ? ' ▃▅▇' : '  ';
+
+            if (avg >= speechThreshold) {
+              this.speechDetected = true;
+              silenceCounter = 0;
+              if (!this.promptInput.value.trim()) {
+                this.voiceStatusText.textContent = `🎙️ Ouvindo seu fone ${volumeBar} Fale seu comando…`;
+              }
+            } else if (this.speechDetected) {
+              silenceCounter++;
+              // 4 ciclos de 200ms = 800ms de pausa natural já encerra e envia! Rápido e responsivo!
+              if (silenceCounter >= 4) {
+                if (this.voiceCheckInterval) {
+                  clearInterval(this.voiceCheckInterval);
+                  this.voiceCheckInterval = null;
+                }
+                this.stopRecording(true);
+                return;
+              }
+            }
+
+            // Corte de segurança de 5s para nunca ficar travado gravando
+            if (ticks >= maxTicks) {
+              if (this.voiceCheckInterval) {
+                clearInterval(this.voiceCheckInterval);
+                this.voiceCheckInterval = null;
+              }
+              this.stopRecording(true);
+            }
+          }, 200);
+        }
+      } catch (e) {
+        console.warn('[Agent] AudioContext analyser:', e);
+      }
+
+      // 3. MediaRecorder para capturar os bytes reais de áudio para o Whisper
+      let mimeType = 'audio/webm;codecs=opus';
+      if (typeof MediaRecorder.isTypeSupported === 'function') {
+        if (!MediaRecorder.isTypeSupported(mimeType)) {
+          mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : '';
+        }
+      }
+      this.recordedMimeType = mimeType || 'audio/webm';
+      this.mediaRecorder = mimeType ? new MediaRecorder(this.mediaStream, { mimeType }) : new MediaRecorder(this.mediaStream);
+
+      this.mediaRecorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) {
+          this.audioChunks.push(e.data);
+        }
+      };
+
+      this.mediaRecorder.start(250);
+
+      // Inicia opcionalmente o WebSpeech se disponível
       if (this.recognition) {
         try {
           this.recognition.start();
         } catch (e) {}
       }
     } catch (err) {
-      this.voiceStatusText.textContent = "Microfone indisponível.";
-      setTimeout(() => this.stopRecording(), 2000);
+      console.error('[Agent] Erro ao acessar microfone:', err);
+      this.voiceStatusText.textContent = "Microfone indisponível ou permissão bloqueada.";
+      setTimeout(() => this.stopRecording(false), 2500);
     }
   }
 
-  stopRecording() {
+  stopRecording(autoSubmit = true) {
+    if (!this.isRecording) return;
     this.isRecording = false;
     this.btnMic.classList.remove('recording');
     this.btnMic.setAttribute('aria-pressed', 'false');
-    this.voiceStatusBar.classList.remove('active');
 
-    if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
-      this.mediaRecorder.stop();
+    if (this.voiceCheckInterval) {
+      clearInterval(this.voiceCheckInterval);
+      this.voiceCheckInterval = null;
     }
 
-    if (this.mediaStream) {
-      this.mediaStream.getTracks().forEach(t => t.stop());
-      this.mediaStream = null;
+    if (this.audioContext) {
+      try { this.audioContext.close(); } catch (_) {}
+      this.audioContext = null;
     }
 
     if (this.recognition) {
-      try {
-        this.recognition.stop();
-      } catch (e) {}
+      try { this.recognition.stop(); } catch (e) {}
     }
 
-    if (this.promptInput.value.trim()) {
-      this.promptInput.focus();
+    const finalize = () => {
+      if (this.mediaStream) {
+        this.mediaStream.getTracks().forEach(t => t.stop());
+        this.mediaStream = null;
+      }
+      this.processRecordedAudio(autoSubmit);
+    };
+
+    if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+      this.mediaRecorder.onstop = finalize;
+      this.mediaRecorder.stop();
+    } else {
+      finalize();
     }
+  }
+
+  async processRecordedAudio(autoSubmit = true) {
+    // 1. Prioridade Instantânea: Se o fone ou a WebSpeech já digitou o texto no campo
+    const liveText = this.promptInput.value.trim();
+    if (liveText) {
+      this.voiceStatusText.textContent = `🎯 Entendido: "${liveText}"`;
+      setTimeout(() => this.voiceStatusBar.classList.remove('active'), 1800);
+      if (autoSubmit) {
+        this.wasVoiceCommand = true;
+        this.promptInput.value = '';
+        await this.handleUserPrompt(liveText);
+      }
+      return;
+    }
+
+    // 2. Se o campo estava vazio, transcreve com OpenAI Whisper
+    if (this.audioChunks && this.audioChunks.length > 0) {
+      this.voiceStatusText.textContent = "⚡ Reconhecendo com Whisper IA…";
+      try {
+        const audioBlob = new Blob(this.audioChunks, { type: this.recordedMimeType || 'audio/webm' });
+        this.audioChunks = [];
+
+        if (audioBlob.size > 400) {
+          const base64Data = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              const res = reader.result;
+              const idx = res.indexOf(',');
+              resolve(idx >= 0 ? res.substring(idx + 1) : res);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(audioBlob);
+          });
+
+          if (window.__asclepioHost && window.__asclepioHost.transcribeAudio) {
+            const result = await window.__asclepioHost.transcribeAudio({
+              audioBase64: base64Data,
+              mimeType: audioBlob.type
+            });
+
+            if (result && result.success && result.text) {
+              const recognizedText = result.text.trim();
+              
+              // Digita o texto reconhecido no campo do chat para o usuário ver
+              this.promptInput.value = recognizedText;
+              this.voiceStatusText.textContent = `🎯 Entendido: "${recognizedText}"`;
+              setTimeout(() => this.voiceStatusBar.classList.remove('active'), 1800);
+
+              if (autoSubmit && recognizedText) {
+                this.wasVoiceCommand = true;
+                // Breve pausa perceptível de 200ms para o usuário ver o texto digitado
+                await new Promise(r => setTimeout(r, 200));
+                this.promptInput.value = '';
+                await this.handleUserPrompt(recognizedText);
+              }
+              return;
+            }
+          }
+        }
+      } catch (err) {
+        console.error('[Agent] Falha na transcrição do áudio:', err);
+      }
+    }
+
+    this.voiceStatusText.textContent = "Nenhuma fala detectada no fone. Tente novamente.";
+    setTimeout(() => this.voiceStatusBar.classList.remove('active'), 2000);
+  }
+
+  // ── SÍNTESE DE VOZ (TTS) PARA RETORNO FALADO AO USUÁRIO ──────────────────
+  speakVoiceFeedback(text) {
+    try {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const clean = text
+          .replace(/[*_#`~>•]/g, ' ')
+          .replace(/https?:\/\/\S+/g, '')
+          .replace(/\[.*?\]\(.*?\)/g, '')
+          .replace(/\s+/g, ' ')
+          .trim()
+          .slice(0, 180);
+        if (!clean) return;
+
+        const utterance = new SpeechSynthesisUtterance(clean);
+        utterance.lang = 'pt-BR';
+        utterance.rate = 1.05;
+        const voices = window.speechSynthesis.getVoices();
+        const ptVoice = voices.find(v => v.lang && (v.lang.includes('pt') || v.lang.includes('PT') || v.lang.includes('BR')));
+        if (ptVoice) utterance.voice = ptVoice;
+        window.speechSynthesis.speak(utterance);
+      }
+    } catch (_) {}
   }
 
   async getActivePageContext() {
     const wv = window.asclepioBrowser ? window.asclepioBrowser.getActiveWebview() : null;
     if (!wv) return { title: 'Nenhuma aba', url: '', text: '' };
 
+    const fallbackInfo = {
+      title: (wv.getTitle && wv.getTitle()) || 'Página Web',
+      url: (wv.getURL && wv.getURL()) || '',
+      text: ''
+    };
+
     try {
-      const pageInfo = await wv.executeJavaScript(`
+      const execPromise = wv.executeJavaScript(`
         ({
           title: (document.title || '').trim(),
           url: window.location.href,
-          text: document.body ? document.body.innerText.replace(/\\s+/g, ' ').trim().slice(0, 3200) : ''
+          text: document.body ? document.body.innerText.replace(/\\s+/g, ' ').trim().slice(0, 2500) : ''
         })
       `);
-      return pageInfo;
+
+      const timeoutPromise = new Promise(resolve => setTimeout(() => resolve(fallbackInfo), 350));
+      return await Promise.race([execPromise, timeoutPromise]);
     } catch (err) {
-      return {
-        title: (wv.getTitle && wv.getTitle()) || 'Página Web',
-        url: (wv.getURL && wv.getURL()) || '',
-        text: ''
-      };
+      return fallbackInfo;
     }
   }
 
@@ -234,15 +448,19 @@ class AsclepioAgent {
     if (!query) return;
     this.lastMentionedSong = query;
     const msgId = existingMsgId || this.appendLoadingMessage();
-    this.updateStepMessage(msgId, `🌐 [Passo 1/2] Buscando **"${query}"** no YouTube…`);
+    this.updateStepMessage(msgId, `🌐 [Passo 1/2] Abrindo busca para **"${query}"** no YouTube…`);
 
     if (window.browserController) {
       const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
       await window.browserController.navigate(searchUrl);
       this.updateStepMessage(msgId, `▶️ [Passo 2/2] Selecionando e reproduzindo o vídeo…`);
-      await window.browserController.wait(1800);
-      await window.browserController.clickFirstVideo();
-      this.replaceLoadingMessage(msgId, `🎬 **Vídeo iniciado no YouTube!**\n\n• Pesquisa: *${query}*\n• O vídeo já está em reprodução na sua tela.`);
+      await window.browserController.wait(150);
+      const res = await window.browserController.clickFirstVideo();
+      if (res && res.success) {
+        this.replaceLoadingMessage(msgId, `🎬 **Vídeo iniciado no YouTube!**\n\n• Pesquisa: *${query}*\n• O vídeo já está em reprodução na sua tela com áudio ativo.`);
+      } else {
+        this.replaceLoadingMessage(msgId, `🎵 **Resultados carregados no YouTube!**\n\n• Pesquisa: *${query}*\n• Os vídeos estão visíveis na tela. Clique no vídeo desejado ou peça *"tocar o primeiro"* para iniciar.`);
+      }
     } else {
       this.replaceLoadingMessage(msgId, `Erro: Controlador do navegador não encontrado.`);
     }
@@ -897,6 +1115,11 @@ class AsclepioAgent {
     `;
     this.chatStream.appendChild(msg);
     this.chatStream.scrollTop = this.chatStream.scrollHeight;
+
+    if (this.wasVoiceCommand) {
+      this.speakVoiceFeedback(text);
+      this.wasVoiceCommand = false;
+    }
   }
 
   appendLoadingMessage() {
@@ -933,6 +1156,11 @@ class AsclepioAgent {
       this.chatStream.scrollTop = this.chatStream.scrollHeight;
     } else {
       this.appendSystemMessage(text);
+    }
+
+    if (this.wasVoiceCommand) {
+      this.speakVoiceFeedback(text);
+      this.wasVoiceCommand = false;
     }
   }
 

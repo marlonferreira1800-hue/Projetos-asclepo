@@ -200,7 +200,7 @@ class AsclepioBrowser {
     webviewEl.setAttribute('partition', 'persist:asclepio');
     webviewEl.setAttribute('useragent', CHROME_UA);
     webviewEl.setAttribute('allowpopups', 'true');
-    webviewEl.setAttribute('webpreferences', 'nativeWindowOpen=yes');
+    webviewEl.setAttribute('webpreferences', 'nativeWindowOpen=yes, autoplayPolicy=no-user-gesture-required');
 
     // BUG FIX 3: Captura links target="_blank" e window.open do webview para abrir como abas
     webviewEl.addEventListener('new-window', (e) => {
@@ -253,6 +253,27 @@ class AsclepioBrowser {
           }
         }
       } catch (e) {}
+
+      // Auto-dismiss de popups de consentimento (Google, YouTube)
+      try {
+        webviewEl.executeJavaScript(`
+          (() => {
+            const consentSelectors = [
+              'button[aria-label*="Aceitar" i]',
+              'button[aria-label*="Accept" i]',
+              'button[aria-label*="Concordo" i]',
+              'form[action*="consent"] button',
+              'ytd-button-renderer#agree-button button',
+              '.yt-spec-button-shape-next--filled[aria-label*="Aceitar" i]'
+            ];
+            for (const s of consentSelectors) {
+              const b = document.querySelector(s);
+              if (b) { b.click(); break; }
+            }
+          })();
+        `).catch(() => {});
+      } catch (_) {}
+
       this.updateNavControls();
     });
 

@@ -567,7 +567,7 @@ webview {
   width: 100% !important;
   height: 100% !important;
   border: none;
-  background: transparent;
+  background: var(--color-app);
   visibility: hidden;
   opacity: 0;
   z-index: 0;

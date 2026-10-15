@@ -12,23 +12,15 @@ class AiRouter {
     this.currentModelIndex = 0;
     this.cooldowns = new Map(); // Armazena tempo de cooldown para modelos que bateram rate limit
 
-    // Cadeia de Modelos Ordenada por Prioridade
+    // Cadeia de Modelos Ordenada por Prioridade (OpenAI primeiro para resposta instantânea em <1s)
     this.models = [
-      {
-        id: 'gemini-2.5-flash',
-        name: 'Google Gemini 2.5 Flash',
-        badge: '✨ Gemini 2.5 Flash (1M Tokens)',
-        provider: 'google',
-        key: this.env.GOOGLE_API_KEY,
-        description: 'Melhor modelo para o projeto: contexto de 1M tokens, ultra-rápido e raciocínio superior para web.'
-      },
       {
         id: 'gpt-4o-mini',
         name: 'OpenAI GPT-4o Mini',
-        badge: '⚡ OpenAI GPT-4o Mini',
+        badge: '⚡ OpenAI GPT-4o Mini (Ultra-rápido)',
         provider: 'openai',
         key: this.env.OPENAI_API_KEY,
-        description: 'Fallback imediato 1: alta estabilidade e velocidade.'
+        description: 'Modelo primário ativo: estabilidade máxima, latência ultrabaixa (<1s) e alta precisão.'
       },
       {
         id: 'openai/gpt-4o-mini',
@@ -36,7 +28,15 @@ class AiRouter {
         badge: '🌐 OpenRouter (Multi-Provider)',
         provider: 'openrouter',
         key: this.env.OPENROUTER_API_KEY,
-        description: 'Fallback imediato 2: roteamento global multi-provedor.'
+        description: 'Fallback imediato 1: roteamento global multi-provedor.'
+      },
+      {
+        id: 'gemini-2.5-flash',
+        name: 'Google Gemini 2.5 Flash',
+        badge: '✨ Gemini 2.5 Flash',
+        provider: 'google',
+        key: this.env.GOOGLE_API_KEY,
+        description: 'Fallback 2: contexto longo de 1M tokens.'
       },
       {
         id: 'antigravity-local',
@@ -197,6 +197,7 @@ class AiRouter {
 
     const res = await fetch(url, {
       method: 'POST',
+      signal: AbortSignal.timeout(5000),
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
@@ -225,6 +226,7 @@ class AiRouter {
 
     const res = await fetch(url, {
       method: 'POST',
+      signal: AbortSignal.timeout(6500),
       headers: {
         'Authorization': `Bearer ${model.key}`,
         'Content-Type': 'application/json'
@@ -258,6 +260,7 @@ class AiRouter {
 
     const res = await fetch(url, {
       method: 'POST',
+      signal: AbortSignal.timeout(6500),
       headers: {
         'Authorization': `Bearer ${model.key}`,
         'Content-Type': 'application/json',
@@ -479,6 +482,100 @@ class AiRouter {
       `• Posso extrair as vagas listadas em uma tabela`;
 
     return await this.ask({ prompt, context: null });
+  }
+
+  // ── TRANSCRIÇÃO INTELIGENTE DE ÁUDIO / VOZ (OpenAI Whisper + Fallback Gemini) ──
+  async transcribeAudio({ audioBase64, mimeType = 'audio/webm' }) {
+    if (!audioBase64) {
+      return { success: false, error: 'Buffer de áudio vazio.' };
+    }
+
+    const audioBuffer = Buffer.from(audioBase64, 'base64');
+    if (audioBuffer.length < 100) {
+      return { success: false, error: 'Gravação muito curta ou vazia.' };
+    }
+
+    // 1. Tentar OpenAI Whisper (whisper-1) - Alta precisão e velocidade em PT-BR
+    if (this.env.OPENAI_API_KEY) {
+      try {
+        console.log(`[AiRouter] Transcrevendo áudio com OpenAI Whisper (${audioBuffer.length} bytes)...`);
+        const ext = mimeType.includes('wav') ? 'audio.wav' : mimeType.includes('mp4') ? 'audio.mp4' : 'audio.webm';
+        const blob = new Blob([audioBuffer], { type: mimeType });
+        const form = new FormData();
+        form.append('file', blob, ext);
+        form.append('model', 'whisper-1');
+        form.append('language', 'pt');
+        form.append('prompt', 'Comandos do navegador Asclepio: abrir youtube, tocar música, pesquisar, pausar, rolar página.');
+
+        const res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+          method: 'POST',
+          signal: AbortSignal.timeout(6000),
+          headers: {
+            'Authorization': `Bearer ${this.env.OPENAI_API_KEY}`
+          },
+          body: form
+        });
+
+        const data = await res.json();
+        if (res.ok && typeof data.text === 'string') {
+          const cleanText = data.text.trim();
+          console.log(`[AiRouter] Whisper reconheceu com sucesso: "${cleanText}"`);
+          return {
+            success: true,
+            text: cleanText,
+            engine: 'OpenAI Whisper-1'
+          };
+        } else {
+          console.warn('[AiRouter] Whisper retornou erro:', data);
+        }
+      } catch (err) {
+        console.error('[AiRouter] Exceção na transcrição Whisper:', err.message);
+      }
+    }
+
+    // 2. Fallback para Google Gemini Multimodal
+    if (this.env.GOOGLE_API_KEY) {
+      try {
+        console.log(`[AiRouter] Tentando transcrição de áudio com Google Gemini...`);
+        const modelId = this.env.DEFAULT_GEMINI_MODEL || 'gemini-2.5-flash';
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${this.env.GOOGLE_API_KEY}`;
+        const base64 = audioBuffer.toString('base64');
+        const cleanMime = mimeType.split(';')[0];
+
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              parts: [
+                { text: "Transcreva o áudio para português do Brasil com exatidão. Retorne única e exclusivamente o texto falado, sem aspas, explicações ou notas." },
+                { inlineData: { mimeType: cleanMime, data: base64 } }
+              ]
+            }]
+          })
+        });
+
+        const data = await res.json();
+        if (res.ok && data?.candidates?.[0]?.content?.parts?.[0]?.text) {
+          const cleanText = data.candidates[0].content.parts[0].text.trim();
+          console.log(`[AiRouter] Gemini áudio reconheceu: "${cleanText}"`);
+          return {
+            success: true,
+            text: cleanText,
+            engine: 'Google Gemini Flash'
+          };
+        } else {
+          console.warn('[AiRouter] Gemini áudio retornou erro:', data);
+        }
+      } catch (err) {
+        console.error('[AiRouter] Exceção na transcrição Gemini:', err.message);
+      }
+    }
+
+    return {
+      success: false,
+      error: 'Não foi possível transcrever o áudio com nenhum dos provedores disponíveis.'
+    };
   }
 }
 

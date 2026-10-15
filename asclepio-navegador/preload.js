@@ -32,6 +32,9 @@ contextBridge.exposeInMainWorld('__asclepioHost', {
   locateVisualCoordinates: (data) => ipcRenderer.invoke('asclepio:locate-visual-coordinates', data),
   chooseElementAction: (data) => ipcRenderer.invoke('asclepio:choose-element-action', data),
   extractData: (data) => ipcRenderer.invoke('asclepio:extract-data', data),
-  observeActions: (data) => ipcRenderer.invoke('asclepio:observe-actions', data)
+  observeActions: (data) => ipcRenderer.invoke('asclepio:observe-actions', data),
+
+  // ── Transcrição de Áudio / Voz (Whisper + Gemini) ──
+  transcribeAudio: (data) => ipcRenderer.invoke('asclepio:transcribe-audio', data)
 });
 

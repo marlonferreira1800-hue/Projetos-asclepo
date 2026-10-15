@@ -64,11 +64,13 @@ Na raiz do repositório, você encontra scripts prontos para rodar no Windows:
 * **🖥️ Desktop App:** Execute `4_iniciar_navegador.bat` ou acesse a pasta e rode `npm start`.
 * **Recursos:**
   - **Clonagem Arquitetural do Polar Browser:** Navegação baseada em Chromium (`webviewTag`) com isolamento seguro IPC via `preload.js`.
-  - **Modo Executivo Direto:** O agente não apenas conversa, mas navega, pesquisa, clica e digita em tempo real.
+  - **Comandos de Voz com Whisper IA & TTS:** Transcrição em tempo real de comandos falados em PT-BR via OpenAI Whisper (`whisper-1`) ou Gemini Multimodal, com retorno falado automático por síntese de voz.
+  - **Roteamento de Ultrabaixa Latência (<1s):** Priorização do OpenAI GPT-4o Mini para respostas instantâneas, com fallback simultâneo para OpenRouter, Gemini 2.5 Flash e Antigravity Local.
+  - **YouTube Auto-Play & Desmute Inteligente:** Localiza e executa o primeiro vídeo automaticamente, desmuta áudio e auto-pula anúncios publicitários.
+  - **Adblocker Nativo Otimizado:** Bloqueio em camada de rede sem conflito de TrustedScript CSP em plataformas de vídeo.
   - **Aura Viewport Luminosa:** Moldura azul/ciano suave nas margens da tela indicando operação do agente sem piscar a página.
   - **Estética Polar White Padrão:** Design em porcelana `#F8F6F5` e branco puro com alternador instantâneo para Dark Mode.
-  - **Roteamento com Fallback Simultâneo:** Alternância sem atrito entre Google Gemini 2.5 Flash, OpenAI GPT-4o-mini, OpenRouter e Antigravity CLI.
-  - **Navegação Universal:** Suporte a mais de 25 portais e serviços (YouTube, LinkedIn, Facebook, Excel Web, Google Sheets, Gmail, etc.).
+  - **Navegação Universal:** Suporte a mais de 25 portais e serviços (YouTube, Meta, LinkedIn, Facebook, Excel Web, Google Sheets, Gmail, etc.).
 
 ---
 
