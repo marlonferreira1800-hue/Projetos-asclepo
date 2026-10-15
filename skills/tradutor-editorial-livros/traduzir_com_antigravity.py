@@ -64,9 +64,11 @@ def traduzir_bloco_antigravity(bloco_html: str, glossario_str: str, contexto_ant
     
     prompt = f"""Você é um Tradutor Editorial Especialista de altíssimo nível, vertendo do Inglês para o Português do Brasil (PT-BR).
 
+ATENÇÃO: NÃO use ferramentas, comandos ou chamadas de busca externa. Apenas processe e verta o texto diretamente.
+
 REGRAS INEGOCIÁVEIS:
 1. TRADUÇÃO INTEGRAL E COMPLETA: NUNCA resuma, sintetize ou corte parágrafos.
-2. PRESERVAÇÃO RIGOROSA DE HTML: Mantenha exatamente todas as tags HTML (<p>, <h1>, <h2>, <h3>, <div>, <span>, <a>, <img>, id, class, href). Traduza APENAS o conteúdo de texto visível dentro das tags.
+2. PRESERVAÇÃO RIGOROSA DE HTML: Mantenha exatamente todas as tags HTML (<p>, <h1>, <h2>, <h3>, <div>, <span>, <a>, <img>, id, class, href). Traduza APENAS o conteúdo de texto visível dentro das tags (notas, referências, títulos).
 3. GLOSSÁRIO EDITORIAL: Siga rigorosamente este guia:
 {glossario_str}
 
@@ -83,11 +85,11 @@ Retorne EXCLUSIVAMENTE o HTML traduzido, sem introduções, sem notas e sem cerc
     for tentativa in range(1, max_tentativas + 1):
         try:
             res = subprocess.run(
-                [AGY_PATH, "-p", prompt],
+                [AGY_PATH, "--dangerously-skip-permissions", "-p", prompt],
                 capture_output=True,
                 text=True,
                 encoding="utf-8",
-                timeout=180
+                timeout=360
             )
             
             t = res.stdout.strip()
