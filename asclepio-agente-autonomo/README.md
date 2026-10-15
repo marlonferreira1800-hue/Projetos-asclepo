@@ -65,6 +65,10 @@ O **Asclepio** já vem equipado de fábrica com as principais capacidades operac
 | `write_file` | Escreve ou sobrescreve arquivos, criando automaticamente pastas pai. |
 | `edit_file` | Substituição cirúrgica de trechos de código em arquivos. |
 | `list_directory` | Lista arquivos e diretórios detalhados no disco. |
+| `repo_map` | Mapeamento inteligente de código e árvore limpa ignorando ruídos (node_modules, .git, caches). |
+| `code_lint` | Validação estática de sintaxe instantânea (Node.js, Python py_compile, JSON) antes de executar. |
+| `test_runner` | Auto-detecção e execução unificada de suítes de teste (npm test, pytest, dart test, cargo, go). |
+| `git_checkpoint` | Salvaguarda atômica com checkpoints Git, diff unificado e rollback automático em caso de falha. |
 | `web_search` | Pesquisa na web via DuckDuckGo. |
 | `web_fetch` | Baixa páginas web e extrai texto limpo sem tags HTML. |
 | `memory_save` | Salva fatos e aprendizados na memória SQLite de longo prazo. |
@@ -75,25 +79,58 @@ O **Asclepio** já vem equipado de fábrica com as principais capacidades operac
 
 ## ⚙️ Configuração de Modelos e Chaves
 
-As chaves de API podem ser configuradas de 3 formas:
-1. **Pela Control UI:** Clique em **⚙️ Configurações** no topo direito do dashboard web e informe sua chave (Gemini, OpenAI, etc.).
-2. **Por Variáveis de Ambiente:**
-   ```powershell
-   $env:GEMINI_API_KEY="sua_chave_aqui"
-   $env:OPENAI_API_KEY="sua_chave_aqui"
+As chaves de API podem ser configuradas de 4 formas simples:
+1. **Via arquivo `.env` (Recomendado):**
+   Copie `.env.example` para `.env` e preencha suas chaves:
+   ```bash
+   cp .env.example .env
    ```
-3. **No arquivo `asclepio.config.json`:**
+2. **Pela Control UI:** Clique em **⚙️ Configurações** no topo direito do dashboard web e informe sua chave (NVIDIA NIM, Gemini, OpenAI, etc.).
+3. **Por Variáveis de Ambiente:**
+   ```powershell
+   $env:NVIDIA_API_KEY="nvapi-..."
+   $env:GEMINI_API_KEY="AIzaSy..."
+   ```
+4. **No arquivo `asclepio.config.json`:**
    ```json
    {
      "agent": {
-       "provider": "gemini",
-       "model": "gemini-2.5-flash"
-     },
-     "apiKeys": {
-       "gemini": "AIzaSy..."
+       "provider": "nvidia",
+       "model": "meta/llama-3.2-90b-vision-instruct"
      }
    }
    ```
+
+---
+
+## 🧪 Bateria de Testes Automatizada (100% PASS)
+
+O **Asclepio v2.0** possui suíte abrangente de testes validando banco de dados, tools, APIs e regressões:
+
+```bash
+node test-suite.mjs
+```
+
+```
+🧪 INICIANDO BATERIA DE TESTES DO LABORATÓRIO (ASCLEPIO)
+✅ PASS: DB: createSession e getSession
+✅ PASS: DB: saveMessage e getSessionMessages
+✅ PASS: DB: saveMemory e searchMemory
+✅ PASS: Tool: execute_command (sucesso)
+✅ PASS: Tool: execute_command (erro de sintaxe ou comando inexistente)
+✅ PASS: Tool: write_file e read_file
+✅ PASS: Tool: edit_file
+✅ PASS: Tool: list_directory
+✅ PASS: Tool: system_info
+✅ PASS: Tool: repo_map (varredura inteligente sem ruído)
+✅ PASS: Tool: code_lint (sintaxe limpa vs sintaxe quebrada)
+✅ PASS: Tool: test_runner (execução padronizada de testes)
+✅ PASS: Tool: git_checkpoint (status e diff seguro)
+✅ PASS: Regressão BUG-005: read_file em diretório sugere list_directory
+✅ PASS: Regressão BUG-004: loadConfig respeita reload e detecção de mtime
+✅ PASS: Gateway: REST API Endpoints
+TOTAL DE TESTES: 16 | PASSOU: 16 | FALHOU: 0 (100% PASS)
+```
 
 ---
 
@@ -106,21 +143,45 @@ asclepio/
 ├── src/
 │   ├── core/
 │   │   ├── agent-loop.js     # Loop ReAct com auto-cura e streaming
-│   │   ├── llm-provider.js   # Multi-provedor (Gemini, OpenAI, Claude, Ollama)
-│   │   └── tool-registry.js  # Arsenal de 10 ferramentas nativas
+│   │   ├── llm-provider.js   # Multi-provedor (NVIDIA NIM, Gemini, OpenAI, Claude, Ollama)
+│   │   └── tool-registry.js  # Arsenal de 14 ferramentas nativas
 │   ├── gateway/
 │   │   └── server.js         # Servidor HTTP + SSE Gateway na porta 18888
 │   ├── storage/
-│   │   ├── config.js         # Gestão de configurações e chaves
+│   │   ├── config.js         # Gestão de configurações e chaves (.env zero-dependency)
 │   │   └── db.js             # Banco SQLite nativo (node:sqlite)
 │   └── ui/
 │       └── index.html        # Dashboard Web responsivo com tema Dark Glass
+├── skills/
+│   ├── lab-agentes-testadores/ # Laboratório de Testes SWE-agent / Aider / MetaGPT
+│   │   ├── SKILL.md          # Especificação e arquitetura de 3 barreiras
+│   │   └── references/       # Prompts do Scanner, Reproductor, Resolver, Verifier
+│   └── tradutor-editorial-livros/ # Skill oficial de tradução editorial
+│       ├── SKILL.md          # Especificação e diretrizes da skill
+│       ├── agente_tradutor.py # Motor multi-modelo com chunking e checkpoint
+│       ├── traduzir_com_antigravity.py # Motor nativo com workers paralelos
+│       └── TRADUZIR_COM_ANTIGRAVITY.bat
 ├── data/
 │   └── asclepio.db           # Banco de dados persistente de sessões e memórias
+├── test-suite.mjs            # Bateria oficial de testes de integração e regressão
 ├── INICIAR_ASCLEPIO.bat      # Inicializador de 1 clique
 ├── TESTAR_ASCLEPIO.bat       # Testador e diagnóstico de 1 clique
+├── .env.example              # Modelo de variáveis de ambiente
 └── package.json
 ```
+
+---
+
+## 📚 Skills Integradas de Fábrica
+
+1. **`lab-agentes-testadores v2.0`**:
+   - Inspirado nas melhores arquiteturas de ponta (**Aider, SWE-agent e MetaGPT**).
+   - Protocolo das **3 Barreiras**: Linter de Sintaxe (`code_lint`), Script de Reprodução Determinístico (`repro_<id>`) e Anti-Regressão Global.
+   - Salvaguarda com rollback atômico Git (`git_checkpoint`).
+
+2. **`tradutor-editorial-livros`**:
+   - Traduz livros inteiros (.epub, .pdf, .md) mantendo 100% da diagramação, formatação, sumário navegável (TOC) e imagens.
+   - Motor assíncrono com workers paralelos e checkpoints contínuos sem perda de progresso.
 
 ---
 
