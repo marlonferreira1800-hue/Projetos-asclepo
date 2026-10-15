@@ -32,12 +32,16 @@ echo   [5] ⚡ Asclepio Agente Autônomo & Gateway (Clone OpenClaw)
 echo       Porta: http://localhost:18888
 echo       Descricao: Agente ReAct autônomo com auto-cura, 10 ferramentas e NVIDIA NIM
 echo.
-echo   [6] 🚀 Abrir todos os projetos
+echo   [6] 📚 Tradutor Editorial de Livros & E-books (Antigravity Gemini)
+echo       Interface: CLI com Checkpoint e Paralelismo (workers=2)
+echo       Descricao: Tradução integral de livros (EPUB/PDF) com sumário, imagens e layout
+echo.
+echo   [7] 🚀 Abrir todos os projetos
 echo.
 echo   [0] ❌ Sair
 echo.
 echo ==============================================================================
-set /p opt="Digite o numero da opcao desejada [0-6]: "
+set /p opt="Digite o numero da opcao desejada [0-7]: "
 
 if "%opt%"=="1" goto opt1
 if "%opt%"=="2" goto opt2
@@ -45,6 +49,7 @@ if "%opt%"=="3" goto opt3
 if "%opt%"=="4" goto opt4
 if "%opt%"=="5" goto opt5
 if "%opt%"=="6" goto opt6
+if "%opt%"=="7" goto opt7
 if "%opt%"=="0" goto fim
 goto menu
 
@@ -102,13 +107,22 @@ goto menu
 
 :opt6
 echo.
-echo Abrindo os 5 projetos do ecossistema Asclepio...
+echo Iniciando Tradutor Editorial de Livros...
+cd /d "%~dp0tradutor-editorial-livros"
+call TRADUZIR_COM_ANTIGRAVITY.bat
+pause
+goto menu
+
+:opt7
+echo.
+echo Abrindo todos os projetos do ecossistema Asclepio...
 start "" "http://localhost:5050"
 start "" "http://localhost:8765"
 start "" "http://localhost:8080"
 start "" "%~dp04_iniciar_navegador.bat"
 start "" "%~dp05_iniciar_agente_autonomo.bat"
-echo Todos os 5 projetos disparados!
+start "" "%~dp06_iniciar_tradutor.bat"
+echo Todos os 6 projetos disparados!
 timeout /t 3 > nul
 goto menu
 

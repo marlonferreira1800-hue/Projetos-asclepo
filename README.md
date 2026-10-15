@@ -13,6 +13,7 @@ Repositório central do ecossistema **Asclepio**, integrando **inteligência art
 | **3. 📰 Redação Virtual Decifrando Dados** | [`redacao-virtual/`](./redacao-virtual/) | `http://localhost:8080` | `python server.py 8080` | Painel RPG 2D Canvas de agentes autônomos com IA **NVIDIA 550B**, scraper web ao vivo e compilação de PDF para o LinkedIn. |
 | **4. 🌐 Asclepio Navegador Autônomo** | [`asclepio-navegador/`](./asclepio-navegador/) | Desktop App (Electron) | `npm start` | Navegador inteligente com agente autônomo, engenharia reversa do Polar Browser, aura azul e fallback multimodelo. |
 | **5. ⚡ Asclepio Agente Autônomo & Gateway** | [`asclepio-agente-autonomo/`](./asclepio-agente-autonomo/) | `http://localhost:18888` | `node bin/asclepio.mjs chat` | Agente de IA ReAct autônomo com auto-cura, engenharia reversa do OpenClaw, 10 ferramentas nativas e NVIDIA NIM. |
+| **6. 📚 Tradutor Editorial de Livros & Acervo** | [`tradutor-editorial-livros/`](./tradutor-editorial-livros/) e [`livros_traduzidos/`](./livros_traduzidos/) | CLI / Terminal | `python traduzir_com_antigravity.py` | Motor editorial com IA nativa da assinatura Gemini (Antigravity), preservação de 100% de imagens, formatação e sumário (TOC) em livros de 300+ páginas. |
 
 ---
 
@@ -20,12 +21,13 @@ Repositório central do ecossistema **Asclepio**, integrando **inteligência art
 
 Na raiz do repositório, você encontra scripts prontos para rodar no Windows:
 
-- **[`HUB_ASCLEPIO.bat`](./HUB_ASCLEPIO.bat)** — **Menu Central Interativo:** escolha qual projeto abrir (1 a 5 ou todos juntos).
+- **[`HUB_ASCLEPIO.bat`](./HUB_ASCLEPIO.bat)** — **Menu Central Interativo:** escolha qual projeto abrir (1 a 6 ou todos juntos).
 - **[`1_iniciar_noticias.bat`](./1_iniciar_noticias.bat)** — Abre diretamente o **Asclepio Notícias** (`:5050`).
 - **[`2_iniciar_calculadora.bat`](./2_iniciar_calculadora.bat)** — Abre a **Calculadora de Tokens Gemini** (`:8765`).
 - **[`3_iniciar_redacao.bat`](./3_iniciar_redacao.bat)** — Abre a **Redação Virtual Decifrando Dados** (`:8080`).
 - **[`4_iniciar_navegador.bat`](./4_iniciar_navegador.bat)** — Abre o **Asclepio Navegador Autônomo** (Electron Desktop).
 - **[`5_iniciar_agente_autonomo.bat`](./5_iniciar_agente_autonomo.bat)** — Abre o **Asclepio Agente Autônomo & Gateway** (`:18888`).
+- **[`6_iniciar_tradutor.bat`](./6_iniciar_tradutor.bat)** — Abre o **Tradutor Editorial de Livros & Acervo de E-books**.
 
 ---
 
@@ -83,6 +85,19 @@ Na raiz do repositório, você encontra scripts prontos para rodar no Windows:
   - **Cascata Inteligente NVIDIA NIM (Sticky Fallback):** Começa automaticamente pelo modelo mais forte (`meta/llama-3.2-90b-vision-instruct`) e alterna sem interrupção para o ultrarrápido (`meta/llama-3.2-11b-vision-instruct`) ou `gemini-2.5-flash`.
   - **10 Ferramentas Nativas:** `execute_command`, `read_file`, `write_file`, `edit_file`, `list_directory`, `web_search`, `web_fetch`, `memory_save`, `memory_search`, `system_info`.
   - **Banco de Dados SQLite Nativo:** Histórico de sessões, mensagens e memória semântica indexada localmente via `node:sqlite`.
+
+---
+
+### 6. 📚 [Tradutor Editorial de Livros & Acervo de E-books](./tradutor-editorial-livros/)
+* **💻 Execução em 1 Clique:** Execute `6_iniciar_tradutor.bat` ou entre na pasta e rode `TRADUZIR_COM_ANTIGRAVITY.bat`.
+* **📁 Acervo de Obras Traduzidas:** Diretório [`livros_traduzidos/`](./livros_traduzidos/).
+* **Recursos:**
+  - **Motor de Assinatura Gemini (Antigravity CLI):** Utiliza diretamente o executável `agy.exe` local da sua assinatura, permitindo traduzir livros inteiros de 300+ páginas com **zero custo adicional de API** e sem travar em limites de cota gratuita (429).
+  - **Preservação Estrutural de 100% do DOM:** Mantém todas as imagens médicas, esquemas, tabelas e estilos CSS dos arquivos `.epub`.
+  - **Tradução Automática de Sumário (TOC):** Converte a árvore de navegação formal (NCX e Nav) para Português do Brasil (Capa, Folha de Rosto, Capítulos 1 a 13, Agradecimentos, Notas, etc.).
+  - **Loop Concorrente com Checkpoint Atômico:** Executa com múltiplos *workers* paralelos e grava cada bloco traduzido instantaneamente no disco, com recuperação automática em caso de interrupção.
+  - **📕 Obra Destaque 100% Concluída:** *Deep Medicine: How Artificial Intelligence Can Make Healthcare Human Again* (Eric Topol, MD) em `.epub` (~14.45 MB) pronto para Kindle, Apple Books e celulares.
+  - **Memória Técnica Oficial:** Consulte o [Relatório Técnico de Execução de Deep Medicine](./livros_traduzidos/RELATORIO_TECNICO_DEEP_MEDICINE.md).
 
 ---
 
