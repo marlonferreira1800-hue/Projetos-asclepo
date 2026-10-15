@@ -1,0 +1,42 @@
+{
+  "name": "Asclepio",
+  "version": "1.0.0",
+  "gateway": {
+    "host": "127.0.0.1",
+    "port": 18888,
+    "corsOrigins": ["*"]
+  },
+  "agent": {
+    "provider": "nvidia",
+    "model": "meta/llama-3.2-90b-vision-instruct",
+    "temperature": 0.2,
+    "maxTurns": 25,
+    "autoFallback": true,
+    "fallbackHierarchy": [
+      {
+        "provider": "nvidia",
+        "model": "meta/llama-3.2-90b-vision-instruct",
+        "name": "Tier 1: Llama 3.2 90B (Mais Forte)"
+      },
+      {
+        "provider": "nvidia",
+        "model": "meta/llama-3.2-11b-vision-instruct",
+        "name": "Tier 2: Llama 3.2 11B (Alta Velocidade)"
+      },
+      {
+        "provider": "gemini",
+        "model": "gemini-2.5-flash",
+        "name": "Tier 3: Gemini 2.5 Flash (Backup)"
+      }
+    ],
+    "workspace": "C:\\Users\\marlo\\OneDrive\\Desktop\\Pasta Projetos\\Reverse"
+  },
+  "apiKeys": {
+    "nvidia": "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",
+    "gemini": "",
+    "openai": "",
+    "anthropic": "",
+    "openrouter": "",
+    "groq": ""
+  }
+}
