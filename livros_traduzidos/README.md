@@ -19,3 +19,11 @@ Este diretório contém os livros e e-books traduzidos integralmente para o Port
 2. **Sumário (TOC) em Português:** Sumário navegável nativo (NCX / Nav) totalmente vertido para o português (Capa, Folha de Rosto, Capítulos 1 a 13, Agradecimentos, Sobre o Autor e Notas).
 3. **Consistência Terminológica:** Aplicação do glossário editorial para termos médicos e de IA (*Deep Learning*, *EHR / Prontuário Eletrônico*, *Clinical Trials*, *Biomarcadores*, etc.).
 4. **Continuidade de Leitura:** Tradução por janela deslizante preservando o tom humano, empático e científico característico do Dr. Eric Topol.
+
+---
+
+## 📑 Memória Técnica e Registro de Tradução
+
+Para entender em detalhes todos os desafios de engenharia superados (limite de saída de tokens, preservação de HTML com BeautifulSoup, resolução do bug do `ebooklib` com `fix_toc_uids`, execução paralela com workers e contorno das chamadas de ferramentas em notas de fim), leia o documento completo:
+
+👉 **[Relatório Técnico e Memória de Execução de Deep Medicine](./RELATORIO_TECNICO_DEEP_MEDICINE.md)**
