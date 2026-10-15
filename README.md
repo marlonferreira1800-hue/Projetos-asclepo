@@ -12,6 +12,7 @@ Repositório central do ecossistema **Asclepio**, integrando **inteligência art
 | **2. 🪙 Calculadora de Tokens Gemini** | [`calculadora-tokens-gemini/`](./calculadora-tokens-gemini/) | `http://localhost:8765` | `python scripts/live_bar.py` | Telemetria em tempo real de tokens consumidos, custos oficiais Google AI e barra visual no terminal. |
 | **3. 📰 Redação Virtual Decifrando Dados** | [`redacao-virtual/`](./redacao-virtual/) | `http://localhost:8080` | `python server.py 8080` | Painel RPG 2D Canvas de agentes autônomos com IA **NVIDIA 550B**, scraper web ao vivo e compilação de PDF para o LinkedIn. |
 | **4. 🌐 Asclepio Navegador Autônomo** | [`asclepio-navegador/`](./asclepio-navegador/) | Desktop App (Electron) | `npm start` | Navegador inteligente com agente autônomo, engenharia reversa do Polar Browser, aura azul e fallback multimodelo. |
+| **5. ⚡ Asclepio Agente Autônomo & Gateway** | [`asclepio-agente-autonomo/`](./asclepio-agente-autonomo/) | `http://localhost:18888` | `node bin/asclepio.mjs chat` | Agente de IA ReAct autônomo com auto-cura, engenharia reversa do OpenClaw, 10 ferramentas nativas e NVIDIA NIM. |
 
 ---
 
@@ -19,11 +20,12 @@ Repositório central do ecossistema **Asclepio**, integrando **inteligência art
 
 Na raiz do repositório, você encontra scripts prontos para rodar no Windows:
 
-- **[`HUB_ASCLEPIO.bat`](./HUB_ASCLEPIO.bat)** — **Menu Central Interativo:** escolha qual projeto abrir (1, 2, 3, 4 ou todos juntos).
+- **[`HUB_ASCLEPIO.bat`](./HUB_ASCLEPIO.bat)** — **Menu Central Interativo:** escolha qual projeto abrir (1 a 5 ou todos juntos).
 - **[`1_iniciar_noticias.bat`](./1_iniciar_noticias.bat)** — Abre diretamente o **Asclepio Notícias** (`:5050`).
 - **[`2_iniciar_calculadora.bat`](./2_iniciar_calculadora.bat)** — Abre a **Calculadora de Tokens Gemini** (`:8765`).
 - **[`3_iniciar_redacao.bat`](./3_iniciar_redacao.bat)** — Abre a **Redação Virtual Decifrando Dados** (`:8080`).
 - **[`4_iniciar_navegador.bat`](./4_iniciar_navegador.bat)** — Abre o **Asclepio Navegador Autônomo** (Electron Desktop).
+- **[`5_iniciar_agente_autonomo.bat`](./5_iniciar_agente_autonomo.bat)** — Abre o **Asclepio Agente Autônomo & Gateway** (`:18888`).
 
 ---
 
@@ -67,6 +69,18 @@ Na raiz do repositório, você encontra scripts prontos para rodar no Windows:
   - **Estética Polar White Padrão:** Design em porcelana `#F8F6F5` e branco puro com alternador instantâneo para Dark Mode.
   - **Roteamento com Fallback Simultâneo:** Alternância sem atrito entre Google Gemini 2.5 Flash, OpenAI GPT-4o-mini, OpenRouter e Antigravity CLI.
   - **Navegação Universal:** Suporte a mais de 25 portais e serviços (YouTube, LinkedIn, Facebook, Excel Web, Google Sheets, Gmail, etc.).
+
+---
+
+### 5. ⚡ [Asclepio Agente Autônomo & Gateway Platform](./asclepio-agente-autonomo/)
+* **🌐 Web Control UI:** Execute `5_iniciar_agente_autonomo.bat` ou acesse `http://localhost:18888`.
+* **💻 Modo Chat no Terminal:** `node asclepio-agente-autonomo/bin/asclepio.mjs chat` ou execute `asclepio-agente-autonomo/CHAT_TERMINAL_ASCLEPIO.bat`.
+* **Recursos:**
+  - **Engenharia Reversa do OpenClaw:** Arquitetura autônoma com Gateway RPC full-duplex, painel Dark Glass moderno e streaming de Server-Sent Events (SSE).
+  - **Loop ReAct com Auto-Cura:** Agente autônomo com reflexão em múltiplos turnos que executa comandos, diagnostica tracebacks e corrige erros por conta própria.
+  - **Cascata Inteligente NVIDIA NIM (Sticky Fallback):** Começa automaticamente pelo modelo mais forte (`meta/llama-3.2-90b-vision-instruct`) e alterna sem interrupção para o ultrarrápido (`meta/llama-3.2-11b-vision-instruct`) ou `gemini-2.5-flash`.
+  - **10 Ferramentas Nativas:** `execute_command`, `read_file`, `write_file`, `edit_file`, `list_directory`, `web_search`, `web_fetch`, `memory_save`, `memory_search`, `system_info`.
+  - **Banco de Dados SQLite Nativo:** Histórico de sessões, mensagens e memória semântica indexada localmente via `node:sqlite`.
 
 ---
 

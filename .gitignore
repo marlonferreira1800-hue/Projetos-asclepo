@@ -33,3 +33,9 @@ env/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Asclepio Autonomous Agent & Databases
+asclepio.config.json
+*.db
+*.db-journal
+*.sqlite

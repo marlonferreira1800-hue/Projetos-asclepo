@@ -1,0 +1,32 @@
+{
+  "name": "asclepio",
+  "version": "1.0.0",
+  "description": "Asclepio - Autonomous Multi-Channel AI Agent Gateway & Platform",
+  "type": "module",
+  "main": "src/gateway/server.js",
+  "bin": {
+    "asclepio": "./bin/asclepio.mjs"
+  },
+  "scripts": {
+    "start": "node bin/asclepio.mjs start",
+    "gateway": "node bin/asclepio.mjs gateway",
+    "chat": "node bin/asclepio.mjs chat",
+    "status": "node bin/asclepio.mjs status",
+    "doctor": "node bin/asclepio.mjs doctor",
+    "ui": "node bin/asclepio.mjs ui"
+  },
+  "keywords": [
+    "asclepio",
+    "ai-agent",
+    "gateway",
+    "autonomous",
+    "openclaw-reverse-engineering",
+    "react-loop",
+    "multi-channel"
+  ],
+  "author": "Marlon Ferreira",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

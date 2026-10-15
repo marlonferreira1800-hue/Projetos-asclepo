@@ -1,0 +1,7 @@
+google-genai>=1.0.0
+beautifulsoup4>=4.12.0
+ebooklib>=0.18
+pymupdf>=1.24.0
+pymupdf4llm>=0.0.17
+python-dotenv>=1.0.0
+rich>=13.0.0

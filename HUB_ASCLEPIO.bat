@@ -28,18 +28,23 @@ echo   [4] 🌐 Asclepio Navegador Autônomo (Clonagem Polar Browser)
 echo       Interface: Aplicacao Desktop Electron (Chromium + IA)
 echo       Descricao: Navegador com agente autonomo, fallback multimodelo e aura azul
 echo.
-echo   [5] 🚀 Abrir todos os projetos
+echo   [5] ⚡ Asclepio Agente Autônomo & Gateway (Clone OpenClaw)
+echo       Porta: http://localhost:18888
+echo       Descricao: Agente ReAct autônomo com auto-cura, 10 ferramentas e NVIDIA NIM
+echo.
+echo   [6] 🚀 Abrir todos os projetos
 echo.
 echo   [0] ❌ Sair
 echo.
 echo ==============================================================================
-set /p opt="Digite o numero da opcao desejada [0-5]: "
+set /p opt="Digite o numero da opcao desejada [0-6]: "
 
 if "%opt%"=="1" goto opt1
 if "%opt%"=="2" goto opt2
 if "%opt%"=="3" goto opt3
 if "%opt%"=="4" goto opt4
 if "%opt%"=="5" goto opt5
+if "%opt%"=="6" goto opt6
 if "%opt%"=="0" goto fim
 goto menu
 
@@ -87,12 +92,23 @@ goto menu
 
 :opt5
 echo.
-echo Abrindo os 4 projetos do ecossistema Asclepio...
+echo [1/2] Abrindo painel de controle em http://localhost:18888...
+start /b powershell -Command "Start-Sleep -Milliseconds 1500; Start-Process 'http://localhost:18888'"
+echo [2/2] Iniciando Asclepio Agente Autônomo & Gateway...
+cd /d "%~dp0asclepio-agente-autonomo"
+call INICIAR_ASCLEPIO.bat
+pause
+goto menu
+
+:opt6
+echo.
+echo Abrindo os 5 projetos do ecossistema Asclepio...
 start "" "http://localhost:5050"
 start "" "http://localhost:8765"
 start "" "http://localhost:8080"
 start "" "%~dp04_iniciar_navegador.bat"
-echo Projetos disparados!
+start "" "%~dp05_iniciar_agente_autonomo.bat"
+echo Todos os 5 projetos disparados!
 timeout /t 3 > nul
 goto menu
 
