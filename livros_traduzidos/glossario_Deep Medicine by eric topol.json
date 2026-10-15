@@ -1,0 +1,28 @@
+{
+  "tom_da_obra": "Científico rigoroso e médico, porém humanizado e acessível ao leitor geral. O tom é analítico, crítico e visionário, explorando o potencial da inteligência artificial para transformar a medicina, mantendo um foco na experiência humana e na ética.",
+  "pessoa_e_tratamento": "Manter a voz do autor em primeira pessoa quando presente. Para o tratamento do leitor, utilizar 'você' de forma natural e fluida, promovendo uma leitura engajadora e direta.",
+  "regras_especificas": [
+    "Preservar siglas consagradas como AI, EHR, ECG, com sua respectiva explicação na primeira ocorrência e, se necessário, o termo em português entre parênteses (ex: 'Inteligência Artificial (IA)').",
+    "Termos como 'Machine Learning' e 'Deep Learning' devem seguir a tradução e o uso indicados no glossário, mantendo o termo original entre parênteses na primeira ocorrência ou quando a clareza e o reconhecimento no meio exigirem.",
+    "Tradução precisa de especialidades médicas (Cardiology, Radiology, Pathology) e outros termos técnicos da área da saúde, conforme o glossário.",
+    "Manter a terminologia técnica em inglês quando não houver um equivalente direto e consagrado em português do Brasil, explicando-o na primeira ocorrência (ex: 'Deep Medicine').",
+    "Garantir a consistência na tradução de termos-chave ao longo de toda a obra, utilizando o glossário como referência primária."
+  ],
+  "glossario_termos": {
+    "Deep Medicine": "Deep Medicine (Medicina Profunda)",
+    "Machine Learning": "Aprendizado de Máquina (Machine Learning)",
+    "Deep Learning": "Aprendizado Profundo (Deep Learning)",
+    "Electronic Health Record": "Prontuário Eletrônico do Paciente (PEP / EHR)",
+    "Clinical Trial": "Ensaio Clínico",
+    "Physician": "Médico",
+    "Burnout": "Burnout (esgotamento profissional)",
+    "Artificial Intelligence": "Inteligência Artificial (IA)",
+    "Healthcare": "Saúde / Cuidados de Saúde (contexto-dependente, preferir 'cuidados de saúde' para o sistema ou prática)",
+    "Medical Diagnosis": "Diagnóstico Médico",
+    "Medical Informatics": "Informática Médica",
+    "Cardiology": "Cardiologia",
+    "Radiology": "Radiologia",
+    "Pathology": "Patologia",
+    "Clinician": "Clínico / Profissional de saúde (preferir 'clínico' para médicos ou profissionais que atendem pacientes diretamente)"
+  }
+}

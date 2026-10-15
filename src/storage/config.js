@@ -7,6 +7,26 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(__dirname, "../../");
 const CONFIG_PATH = path.join(ROOT_DIR, "asclepio.config.json");
+const ENV_PATH = path.join(ROOT_DIR, ".env");
+
+// Zero-dependency .env loader
+if (fs.existsSync(ENV_PATH)) {
+  try {
+    const lines = fs.readFileSync(ENV_PATH, "utf-8").split(/\r?\n/);
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) continue;
+      const idx = trimmed.indexOf("=");
+      if (idx !== -1) {
+        const key = trimmed.slice(0, idx).trim();
+        const val = trimmed.slice(idx + 1).trim().replace(/^["']|["']$/g, "");
+        if (!process.env[key]) {
+          process.env[key] = val;
+        }
+      }
+    }
+  } catch {}
+}
 
 const DEFAULT_CONFIG = {
   name: "Asclepio",
@@ -51,7 +71,7 @@ Diretrizes Cruciais de Conversação e Ferramentas:
     workspace: process.cwd()
   },
   apiKeys: {
-    nvidia: process.env.NVIDIA_API_KEY || "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",
+    nvidia: process.env.NVIDIA_API_KEY || "",
     gemini: process.env.GEMINI_API_KEY || "",
     openai: process.env.OPENAI_API_KEY || "",
     anthropic: process.env.ANTHROPIC_API_KEY || "",
