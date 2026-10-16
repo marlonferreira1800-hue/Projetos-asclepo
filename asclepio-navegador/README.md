@@ -1,98 +1,62 @@
-# 🌐 Asclepio Browser — Navegador Autônomo com IA (Clonagem Polar Browser)
+# 🚀 Asclepio Browser
 
-> **Asclepio Browser** é um navegador inteligente com agente de IA totalmente autônomo, construído através de engenharia reversa minuciosa da arquitetura do **Polar Browser**. Opera com Chromium Multi-Abas, design **Polar White**, aura visual luminosa nas bordas e motor de IA com fallback simultâneo multimodelo.
-
----
-
-## 🌟 Principais Recursos
-
-1. **Agente Autônomo com Modo Executivo Direto:**
-   - Traduz intenções em linguagem natural diretamente em comandos Chromium de navegação, cliques e digitação.
-   - Navegação universal para mais de 25 portais e web apps: YouTube, LinkedIn, Facebook, Excel Web (`excel.new`), Google Sheets, Gmail, Notion, Canva, etc.
-   - Algoritmo de clique inteligente (`smartClick`) que localiza botões, links e campos interativos via síntese do DOM.
-
-2. **Aura Viewport Luminosa (Feedback Visual Sem Piscar a Tela):**
-   - Borda iluminada em azul ciano (`#01BAEF`) com animação pulsante suave que envolve o viewport enquanto o agente opera.
-   - Badge flutuante centralizado exibindo o status da ação em tempo real sem causar flickering ou recarregamentos indesejados.
-
-3. **Design Polar White Oficial:**
-   - Paleta de cores oficial: Canvas Porcelana (`#F8F6F5`), Superfícies Pure White (`#FFFFFF`), Linhas de Borda (`#E8E8E6`), Texto Dark Slate (`#252423`) e Tipografia Manrope.
-   - Botão de alternância **Sol / Lua** no menu lateral para trocar dinamicamente entre Polar White e Dark Mode, com persistência no `localStorage`.
-
-4. **Roteamento Inteligente com Fallback Simultâneo (<1s de Latência):**
-   - **Modelo Primário Ativo:** OpenAI GPT-4o Mini (estabilidade máxima, tempo de resposta inferior a 1 segundo para comandos de navegação).
-   - **Fallback 1:** OpenRouter GPT-4o Mini (roteamento distribuído multi-provedor).
-   - **Fallback 2:** Google Gemini 2.5 Flash (contexto estendido de 1M tokens).
-   - **Fallback 3:** Motor Local Antigravity CLI (`agy`) offline.
-
-5. **Comandos de Voz com Whisper IA & Síntese Falada (TTS):**
-   - **Transcrição de Alta Precisão:** Reconhecimento de voz em tempo real através do OpenAI Whisper (`whisper-1`) em português brasileiro, com fallback para Gemini Multimodal.
-   - **Resposta Falada:** O agente responde falado com voz natural em português sempre que um comando for emitido por áudio.
-   - **Digitação Visual no Prompt:** O comando reconhecido aparece instantaneamente no input antes da execução.
-
-6. **Arsenal de 20 Ações de Navegação e Multimídia:**
-   - **YouTube Auto-Play & Desmute Inteligente:** Busca direta, clique automático no primeiro resultado com até 15 tentativas dinâmicas, desmute forçado (`muted = false`), ajuste de volume e auto-pular anúncios (`skipAd`).
-   - **Auto-Dismiss de Consentimento:** Fecha e aceita automaticamente janelas de cookies do Google/YouTube ao carregar páginas.
-   - **Adblocker Nativo Otimizado:** Bloqueio de anúncios em rede (`NetworkFilters`) preservando compatibilidade com o TrustedScript CSP do YouTube.
-   - **Controle Total:** `setVolume(0-100)`, `changeVolume(delta)`, `toggleMute()`, `toggleFullscreen()`, `setPlaybackSpeed()`, `seek()`, `skipAd()`.
-   - **Gerenciamento de Abas:** `newTab()`, `closeActiveTab()`, `reload()`, `goBack()`, `goForward()`.
-   - **Síntese do DOM:** Extração contextual da página para raciocínio contínuo da IA.
-
-7. **Command Palette (`Ctrl + K`):**
-   - Barra estilo Spotlight para comandos rápidos, busca, navegação e comandos diretos para o agente.
+Navegador de IA com Arquitetura de 3 Colunas (*Split-Canvas*) inspirada no **Polar Browser**, desenvolvido com **Electron**, **React**, **TypeScript**, **Tailwind CSS** e controle via **Chrome DevTools Protocol (CDP)**.
 
 ---
 
-## 🚀 Como Executar
+## 🏛️ Arquitetura das 3 Colunas
 
-### Pré-requisitos
-- Node.js (v18+)
-- npm
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│ [≡]  [• Play Jogado aos Tubarões... ×]  [⚙ Settings]  [+]              [N1] [─] [□] [✕] │
+├──────────────────────┬──────────────────────────────────┬──────────────────────────────┤
+│ 🔍 ◫                 │ [Share]                      [◫] │ [▶ Bruno Mars... 🔊 ×]   [+] │
+│ [+ New task]         ├──────────────────────────────────┼──────────────────────────────┤
+│                      │                                  │ [<] [>] [↻] [🔒 youtube...]  │
+│  Workflows          │   User: toque the lazy           │                              │
+│ ⊞ Templates          │                                  │      CANVAS DO NAVEGADOR     │
+│ ⚙ Customize          │   Bruno Mars, "The Lazy Song".   │      (Webview Chromium)      │
+│                      │   [Navigating https://...]       │                              │
+│ RECENTS              │   [Aguardando resultados 🎬]     │   🐵 🕶️ 🍌                   │
+│ • Tubarões (Ativo)   │   [Tocando The Lazy Song ●]      │   Bruno Mars - The Lazy Song │
+│ • Justin Bieber      │                                  │                              │
+│ • LinkedIn Login     │ ┌──────────────────────────────┐ │       ↖ [Tocando Música]     │
+│                      │ │ Send a follow up...          │ │         (Cursor Tooltip)     │
+│ GET STARTED          │ │ [+] [Medium ▾]     [🎙️] [↑] │ │                              │
+│ ✔ Run first task     │ └──────────────────────────────┘ │                              │
+└──────────────────────┴──────────────────────────────────┴──────────────────────────────┘
+```
 
-### Passo a Passo
-1. No diretório do projeto, configure suas chaves de API:
+---
+
+## 📦 Como Instalar e Executar
+
+1. **Instale as dependências:**
    ```bash
-   cp .env.example .env
-   # Edite o arquivo .env com suas chaves (Google Gemini, OpenAI, etc.)
-   ```
-
-2. Instale as dependências:
-   ```bash
+   cd asclepio-browser
    npm install
    ```
 
-3. Inicie o navegador:
+2. **Inicie em modo de desenvolvimento (Hot Reload):**
    ```bash
-   npm start
+   npm run dev
    ```
 
-*No Windows, você também pode abrir com 1 clique usando o executável `Asclepio.exe`.*
+3. **Gere o executável de produção:**
+   ```bash
+   npm run build
+   ```
 
 ---
 
-## 📁 Estrutura de Arquivos
+## 🧩 Estrutura do Código
 
-```
-asclepio-navegador/
-├── package.json          # Metadados e scripts de execução
-├── main.js               # Host Electron (IPC seguro, ciclo de vida e janelas)
-├── preload.js            # Ponte de isolamento (__asclepioHost)
-├── index.html            # Shell visual do navegador com suporte a temas
-├── asclepio.ico          # Ícone oficial de alta definição
-├── launcher.cs           # Código-fonte do inicializador silencioso em C#
-├── Asclepio.exe          # Executável compilado para inicialização nativa
-├── DOCUMENTACAO_ARQUITETURA_POLAR_E_ASCLEPIO.md # Blueprint da engenharia reversa
-└── src/
-    ├── css/
-    │   └── style.css     # Design tokens Polar White, Dark Mode e animação da Aura
-    ├── fonts/
-    │   ├── Manrope.ttf   # Tipografia oficial do Polar
-    │   └── polar-logo.png # Logotipo do navegador
-    └── js/
-        ├── agent.js            # Núcleo do agente autônomo e analisador de intenções
-        ├── ai-router.js        # Motor de roteamento multimodelo com fallback simultâneo
-        ├── browser-controller.js # Controlador de Chromium, automação de DOM e mídia
-        ├── browser.js          # Gerenciamento de abas, Omnibar e alternância de temas
-        ├── agent-cursor.js     # Efeitos táteis de cursor e clique
-        └── command-palette.js  # Menu de comando rápido (Ctrl+K)
-```
+- `src/main/index.ts`: Processo principal do Electron, porta remota 9222 do Chromium, ponte CDP e despacho de cliques físicos.
+- `src/preload/index.ts`: Context bridge seguro expondo as APIs do navegador para a UI React.
+- `src/renderer/src/`:
+  - `components/AppHeader.tsx`: Abas de tarefa, avatar e controles da janela.
+  - `components/Sidebar.tsx`: Coluna 1 — New task, workflows, recents e checklist.
+  - `components/AgentCanvas.tsx`: Coluna 2 — Histórico de conversa, pensamentos da IA e cards de ação.
+  - `components/BrowserPane.tsx`: Coluna 3 — Webview Chromium e cursor fantasma com tooltip dinâmico.
+  - `components/EffortPopover.tsx`: Popover do slider de esforço (Low, Medium, High, Max).
+  - `store.ts`: Store global reativa com Zustand.

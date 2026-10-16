@@ -62,17 +62,15 @@ Na raiz do repositório, você encontra scripts prontos para rodar no Windows:
 
 ---
 
-### 4. 🌐 [Asclepio Navegador Autônomo](./asclepio-navegador/)
-* **🖥️ Desktop App:** Execute `4_iniciar_navegador.bat` ou acesse a pasta e rode `npm start`.
+### 4. 🌐 [Asclepio Browser / Navegador Autônomo](./asclepio-browser/) (ou [asclepio-navegador](./asclepio-navegador/))
+* **🖥️ Desktop App:** Execute `4_iniciar_navegador.bat`, `abrir_asclepio.bat` ou rode `npm run dev` / `npm start`.
 * **Recursos:**
-  - **Clonagem Arquitetural do Polar Browser:** Navegação baseada em Chromium (`webviewTag`) com isolamento seguro IPC via `preload.js`.
-  - **Comandos de Voz com Whisper IA & TTS:** Transcrição em tempo real de comandos falados em PT-BR via OpenAI Whisper (`whisper-1`) ou Gemini Multimodal, com retorno falado automático por síntese de voz.
-  - **Roteamento de Ultrabaixa Latência (<1s):** Priorização do OpenAI GPT-4o Mini para respostas instantâneas, com fallback simultâneo para OpenRouter, Gemini 2.5 Flash e Antigravity Local.
-  - **YouTube Auto-Play & Desmute Inteligente:** Localiza e executa o primeiro vídeo automaticamente, desmuta áudio e auto-pula anúncios publicitários.
-  - **Adblocker Nativo Otimizado:** Bloqueio em camada de rede sem conflito de TrustedScript CSP em plataformas de vídeo.
-  - **Aura Viewport Luminosa:** Moldura azul/ciano suave nas margens da tela indicando operação do agente sem piscar a página.
-  - **Estética Polar White Padrão:** Design em porcelana `#F8F6F5` e branco puro com alternador instantâneo para Dark Mode.
-  - **Navegação Universal:** Suporte a mais de 25 portais e serviços (YouTube, Meta, LinkedIn, Facebook, Excel Web, Google Sheets, Gmail, etc.).
+  - **Arquitetura Split-Canvas Moderna:** React 18 + Vite + TypeScript + Tailwind CSS inspirada no Polar Browser / Manus Studio com 3 colunas independentes (Sidebar, Agent Canvas e Browser Webview).
+  - **Pool de IA da NVIDIA Integrate (Multi-Modelo):** Suporte nativo e seleção manual no painel `Settings` com ultra-baixa latência (~1s): `meta/llama-3.2-11b-vision-instruct`, `google/gemma-4-31b-it`, `deepseek-ai/deepseek-r1`, `qwen/qwen2.5-72b` e entrada para qualquer modelo customizado.
+  - **Gerenciamento Manual de Chaves de API:** Painel visual com campo aberto para inserir, ocultar/exibir e salvar qualquer chave da NVIDIA (`nvapi-...`) em tempo real.
+  - **Automação Web via Chrome DevTools Protocol (CDP):** Controle de acessibilidade semântica, cliques físicos por coordenadas reais, rolagem e digitação com eventos de teclado completos.
+  - **Roteamento Inteligente e Auto-Play YouTube/Google:** Reconhece buscas complexas com tolerância a digitação, pula direto para resultados e reproduz vídeos automaticamente.
+  - **Cursor Fantasma com Feedback Visual:** Tooltips dinâmicos e sincronização de áudio em tempo real (`media-started-playing`).
 
 ---
 

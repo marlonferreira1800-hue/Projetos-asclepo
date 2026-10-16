@@ -1,0 +1,73 @@
+{
+  "name": "asclepio-browser",
+  "version": "1.0.0",
+  "description": "Navegador de IA com Arquitetura Split-Canvas inspirada no Polar Browser",
+  "main": "./out/main/index.js",
+  "author": "Marlon Ferreira",
+  "scripts": {
+    "start": "electron-vite dev",
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "test": "node --experimental-strip-types ./test/user-army/run-user-army.ts",
+    "test:army": "node --experimental-strip-types ./test/user-army/run-user-army.ts",
+    "pack": "electron-builder --win --dir",
+    "dist": "electron-builder --win"
+  },
+  "build": {
+    "appId": "com.asclepio.browser",
+    "productName": "Asclepio Browser",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "out/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        },
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Asclepio Browser"
+    },
+    "portable": {
+      "artifactName": "Asclepio Browser.exe"
+    }
+  },
+  "dependencies": {
+    "chrome-remote-interface": "^0.33.2",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.475.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwind-merge": "^3.0.1",
+    "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "electron": "^34.2.0",
+    "electron-builder": "^26.15.3",
+    "electron-vite": "^2.3.0",
+    "postcss": "^8.5.2",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.3",
+    "vite": "^5.4.14"
+  }
+}

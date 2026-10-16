@@ -12,6 +12,8 @@ dist/
 
 # Node / Electron
 node_modules/
+out/
+dist/
 package-lock.json
 *.log
 npm-debug.log*
