@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Production output
+dist/
+out/
+
+# Environment files & Secrets
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Test reports
+user-army-report.json
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

@@ -71,8 +71,32 @@ export const TOP_10_NVIDIA_MODELS: AIModel[] = [
   }
 ]
 
-export const DEFAULT_NVIDIA_API_KEY =
-  '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'
+function loadDefaultApiKey(): string {
+  if (process.env.NVIDIA_API_KEY && process.env.NVIDIA_API_KEY.trim()) {
+    return process.env.NVIDIA_API_KEY.trim()
+  }
+
+  try {
+    const candidates = [
+      path.join(process.cwd(), '.env'),
+      path.join(__dirname, '../../.env'),
+      path.join(process.env.USERPROFILE || process.env.HOME || '', '.env')
+    ]
+    for (const p of candidates) {
+      if (fs.existsSync(p)) {
+        const content = fs.readFileSync(p, 'utf-8')
+        const match = content.match(/NVIDIA_API_KEY\s*=\s*([^\r\n]+)/)
+        if (match && match[1].trim()) {
+          return match[1].trim()
+        }
+      }
+    }
+  } catch {}
+
+  return ''
+}
+
+export const DEFAULT_NVIDIA_API_KEY = loadDefaultApiKey()
 
 export interface CompletionResult {
   text: string

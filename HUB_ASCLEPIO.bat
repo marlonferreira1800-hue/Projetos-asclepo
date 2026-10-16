@@ -85,13 +85,25 @@ goto menu
 
 :opt4
 echo.
-echo Iniciando Asclepio Navegador Autonomo...
-cd /d "%~dp0asclepio-navegador"
-if not exist node_modules (
-    echo Instalando dependencias do Electron...
-    call npm install
+echo Iniciando Asclepio Browser (Next-Gen Polar Architecture)...
+if exist "%~dp0asclepio-browser" (
+    cd /d "%~dp0asclepio-browser"
+    if not exist node_modules (
+        echo Instalando dependencias do Electron + Vite...
+        call npm install
+    )
+    if not exist .env (
+        if exist .env.example copy .env.example .env > nul
+    )
+    call npm run dev
+) else (
+    cd /d "%~dp0asclepio-navegador"
+    if not exist node_modules (
+        echo Instalando dependencias do Electron...
+        call npm install
+    )
+    call npm start
 )
-call npm start
 pause
 goto menu
 

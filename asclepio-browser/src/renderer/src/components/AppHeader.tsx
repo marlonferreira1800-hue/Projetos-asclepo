@@ -257,7 +257,7 @@ export const AppHeader: React.FC = () => {
                       type={showKey ? 'text' : 'password'}
                       value={apiKeyInput}
                       onChange={(e) => setApiKeyInput(e.target.value)}
-                      placeholder="nvapi-OoqgzL4R7WcVU_zydZVXwe9Zu0qOt356..."
+                      placeholder="nvapi-..."
                       className="w-full bg-white border border-cardBorder focus:border-polarBlue focus:ring-1 focus:ring-polarBlue/30 rounded-lg px-3 py-2 pr-9 text-xs font-mono text-textPrimary outline-none transition"
                     />
                     <button

@@ -11,7 +11,7 @@ Repositório central do ecossistema **Asclepio**, integrando **inteligência art
 | **1. ⚡ Asclepio Notícias** | [`asclepio-noticias/`](./asclepio-noticias/) | `http://localhost:5050` | `python news.py` | Radar global de notícias em tempo real, bilíngue (PT/EN), Busca 360° e tradução automática livre. |
 | **2. 🪙 Calculadora de Tokens Gemini** | [`calculadora-tokens-gemini/`](./calculadora-tokens-gemini/) | `http://localhost:8765` | `python scripts/live_bar.py` | Telemetria em tempo real de tokens consumidos, custos oficiais Google AI e barra visual no terminal. |
 | **3. 📰 Redação Virtual Decifrando Dados** | [`redacao-virtual/`](./redacao-virtual/) | `http://localhost:8080` | `python server.py 8080` | Painel RPG 2D Canvas de agentes autônomos com IA **NVIDIA 550B**, scraper web ao vivo e compilação de PDF para o LinkedIn. |
-| **4. 🌐 Asclepio Navegador Autônomo** | [`asclepio-navegador/`](./asclepio-navegador/) | Desktop App (Electron) | `npm start` | Navegador inteligente com agente autônomo, engenharia reversa do Polar Browser, aura azul e fallback multimodelo. |
+| **4. 🌐 Asclepio Browser** | [`asclepio-browser/`](./asclepio-browser/) | Desktop App (Electron + React + Vite) | `npm run dev` | Navegador autônomo com arquitetura Split-Canvas inspirada no Polar Browser, pool de 10 modelos NVIDIA com fallback, CDP anti-ghost click e 12 agentes de teste sintéticos. |
 | **5. ⚡ Asclepio Agente Autônomo & Gateway** | [`asclepio-agente-autonomo/`](./asclepio-agente-autonomo/) | `http://localhost:18888` | `node bin/asclepio.mjs chat` | Agente de IA ReAct autônomo com auto-cura, engenharia reversa do OpenClaw, 10 ferramentas nativas e NVIDIA NIM. |
 | **6. 📚 Tradutor Editorial de Livros & Acervo** | [`tradutor-editorial-livros/`](./tradutor-editorial-livros/) e [`livros_traduzidos/`](./livros_traduzidos/) | CLI / Terminal | `python traduzir_com_antigravity.py` | Motor editorial com IA nativa da assinatura Gemini (Antigravity), preservação de 100% de imagens, formatação e sumário (TOC) em livros de 300+ páginas. |
 
@@ -62,15 +62,15 @@ Na raiz do repositório, você encontra scripts prontos para rodar no Windows:
 
 ---
 
-### 4. 🌐 [Asclepio Browser / Navegador Autônomo](./asclepio-browser/) (ou [asclepio-navegador](./asclepio-navegador/))
-* **🖥️ Desktop App:** Execute `4_iniciar_navegador.bat`, `abrir_asclepio.bat` ou rode `npm run dev` / `npm start`.
+### 4. 🌐 [Asclepio Browser (Next-Gen Polar Architecture)](./asclepio-browser/)
+* **🖥️ Desktop App:** Execute `4_iniciar_navegador.bat` ou acesse `asclepio-browser` e rode `npm run dev`.
 * **Recursos:**
-  - **Arquitetura Split-Canvas Moderna:** React 18 + Vite + TypeScript + Tailwind CSS inspirada no Polar Browser / Manus Studio com 3 colunas independentes (Sidebar, Agent Canvas e Browser Webview).
-  - **Pool de IA da NVIDIA Integrate (Multi-Modelo):** Suporte nativo e seleção manual no painel `Settings` com ultra-baixa latência (~1s): `meta/llama-3.2-11b-vision-instruct`, `google/gemma-4-31b-it`, `deepseek-ai/deepseek-r1`, `qwen/qwen2.5-72b` e entrada para qualquer modelo customizado.
-  - **Gerenciamento Manual de Chaves de API:** Painel visual com campo aberto para inserir, ocultar/exibir e salvar qualquer chave da NVIDIA (`nvapi-...`) em tempo real.
-  - **Automação Web via Chrome DevTools Protocol (CDP):** Controle de acessibilidade semântica, cliques físicos por coordenadas reais, rolagem e digitação com eventos de teclado completos.
-  - **Roteamento Inteligente e Auto-Play YouTube/Google:** Reconhece buscas complexas com tolerância a digitação, pula direto para resultados e reproduz vídeos automaticamente.
-  - **Cursor Fantasma com Feedback Visual:** Tooltips dinâmicos e sincronização de áudio em tempo real (`media-started-playing`).
+  - **Arquitetura Split-Canvas Polar Browser:** Divisão em tempo real entre o Agent Canvas (esquerda) e o Browser Pane Chromium ao vivo (direita).
+  - **Pool de 10 Modelos NVIDIA com Failover Ativo:** Conectado à API NVIDIA Integrate com auto-fallback imediato entre modelos de ponta (`meta/llama-3.2-11b-vision-instruct`, `gemma-4-31b-it`, `nemotron-3-super-120b`, `step-5-preview`, etc.).
+  - **Controle Físico CDP & Anti-Ghost Click:** Emulação real de eventos do mouse (`Input.dispatchMouseEvent`) com reforço DOM e navegação direta instantânea imune a sobreposições Polymer do YouTube.
+  - **Exército de Testes Sintéticos (12 Personas):** Suite automatizada de homologação e QA cobrindo 30 cenários críticos (concorrência, multi-abas, acessibilidade, engenharia do caos, anti-loop e integridade de memória).
+  - **Design Polar White de Alta Fidelidade:** Padrão estético profissional com abas dinâmicas, barra de comandos unificada (`/`), modais de templates e histórico de sessões.
+  - **Versão Clássica Preservada:** O protótipo original continua disponível em [`asclepio-navegador/`](./asclepio-navegador/).
 
 ---
 
